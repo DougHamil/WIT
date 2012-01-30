@@ -4,6 +4,8 @@
 void WITApplication::initialize(int argc, char *argv[])
 {
 	// Construct the model
+	// - The group collection
+	this->groups = new GroupCollection();
 
 	// Construct the view (which will construct its own controllers)
 	qApplication = new QApplication(argc, argv);

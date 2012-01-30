@@ -11,6 +11,12 @@
 #include "WITGroupPanel.h"
 #include "WITToolPanel.h"
 
+/**
+	The WITMainWindow is the main view element that holds all of the view elements of the application.
+	It constructs all of its child view classes such as the WITGroupPanel and various dialogs.
+
+	@author Doug Hamilton
+*/
 class WITMainWindow : public QMainWindow
 {
 	Q_OBJECT

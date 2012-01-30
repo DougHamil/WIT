@@ -11,7 +11,6 @@
 * memento from the stack.  The UndoSystem will tell the memento to act on the model when it is popped.
 
 @author Doug Hamilton
-@version %I, @date
 */
 class UndoSystem
 {
