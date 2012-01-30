@@ -1,0 +1,170 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\util\ComputeListener.h" />
+    <ClInclude Include="..\..\..\util\DBInterface.h" />
+    <ClInclude Include="..\..\..\util\DTIDeterministicPathTracer.h" />
+    <ClInclude Include="..\..\..\util\DTIFilter.h" />
+    <ClInclude Include="..\..\..\util\DTIFilterAlgorithm.h" />
+    <ClInclude Include="..\..\..\util\DTIFilterComplex.h" />
+    <ClInclude Include="..\..\..\util\DTIFilterCube.h" />
+    <ClInclude Include="..\..\..\util\DTIFilterPathwayScalar.h" />
+    <ClInclude Include="..\..\..\util\DTIFilterSphere.h" />
+    <ClInclude Include="..\..\..\util\DTIFilterTree.h" />
+    <ClInclude Include="..\..\..\util\DTIFilterVOI.h" />
+    <ClInclude Include="..\..\..\util\DTIMath.h" />
+    <ClInclude Include="..\..\..\util\DTIPathDistanceMatrix.h" />
+    <ClInclude Include="..\..\..\util\DTIPathTracer.h" />
+    <ClInclude Include="..\..\..\util\DTIPathway.h" />
+    <ClInclude Include="..\..\..\util\DTIPathwayAlgorithmHeader.h" />
+    <ClInclude Include="..\..\..\util\DTIPathwayAssignment.h" />
+    <ClInclude Include="..\..\..\util\DTIPathwayDatabase.h" />
+    <ClInclude Include="..\..\..\util\DTIPathwayFactory.h" />
+    <ClInclude Include="..\..\..\util\DTIPathwayFactoryInterface.h" />
+    <ClInclude Include="..\..\..\util\DTIPathwayInterface.h" />
+    <ClInclude Include="..\..\..\util\DTIPathwayIO.h" />
+    <ClInclude Include="..\..\..\util\DTIPathwaySelection.h" />
+    <ClInclude Include="..\..\..\util\DTIPathwayStatisticHeader.h" />
+    <ClInclude Include="..\..\..\util\DTIQueryProcessor.h" />
+    <ClInclude Include="..\..\..\util\DTISeedGenerator.h" />
+    <ClInclude Include="..\..\..\util\DTIStats.h" />
+    <ClInclude Include="..\..\..\util\DTISTTPathTracer.h" />
+    <ClInclude Include="..\..\..\util\DTITENDPathTracer.h" />
+    <ClInclude Include="..\..\..\util\DTIUniformSeedGenerator.h" />
+    <ClInclude Include="..\..\..\util\DTIVolume.h" />
+    <ClInclude Include="..\..\..\util\DTIVolumeInterface.h" />
+    <ClInclude Include="..\..\..\util\DTIVolumeIO.h" />
+    <ClInclude Include="..\..\..\util\FunctionNodes.h" />
+    <ClInclude Include="..\..\..\util\FunctionParser.h" />
+    <ClInclude Include="..\..\..\util\io_utils.h" />
+    <ClInclude Include="..\..\..\util\PathwayIntersectionVolume.h" />
+    <ClInclude Include="..\..\..\util\ScalarVolume.h" />
+    <ClInclude Include="..\..\..\util\ScalarVolumeInterface.h" />
+    <ClInclude Include="..\..\..\util\tokens.h" />
+    <ClInclude Include="..\..\..\util\typedefs.h" />
+    <ClInclude Include="..\..\..\util\VOIManager.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\util\DTIDeterministicPathTracer.cpp" />
+    <ClCompile Include="..\..\..\util\DTIFilter.cpp" />
+    <ClCompile Include="..\..\..\util\DTIFilterAlgorithm.cpp" />
+    <ClCompile Include="..\..\..\util\DTIFilterComplex.cpp" />
+    <ClCompile Include="..\..\..\util\DTIFilterCube.cpp" />
+    <ClCompile Include="..\..\..\util\DTIFilterPathwayScalar.cpp" />
+    <ClCompile Include="..\..\..\util\DTIFilterSphere.cpp" />
+    <ClCompile Include="..\..\..\util\DTIFilterTree.cpp" />
+    <ClCompile Include="..\..\..\util\DTIFilterVOI.cpp" />
+    <ClCompile Include="..\..\..\util\DTIMath.cpp" />
+    <ClCompile Include="..\..\..\util\DTIPathDistanceMatrix.cpp" />
+    <ClCompile Include="..\..\..\util\DTIPathTracer.cpp" />
+    <ClCompile Include="..\..\..\util\DTIPathway.cpp" />
+    <ClCompile Include="..\..\..\util\DTIPathwayAssignment.cpp" />
+    <ClCompile Include="..\..\..\util\DTIPathwayDatabase.cpp" />
+    <ClCompile Include="..\..\..\util\DTIPathwayFactory.cpp" />
+    <ClCompile Include="..\..\..\util\DTIPathwayInterface.cpp" />
+    <ClCompile Include="..\..\..\util\DTIPathwayIO.cpp" />
+    <ClCompile Include="..\..\..\util\DTIPathwaySelection.cpp" />
+    <ClCompile Include="..\..\..\util\DTIQueryProcessor.cpp" />
+    <ClCompile Include="..\..\..\util\DTIStats.cpp" />
+    <ClCompile Include="..\..\..\util\DTISTTPathTracer.cpp" />
+    <ClCompile Include="..\..\..\util\DTITENDPathTracer.cpp" />
+    <ClCompile Include="..\..\..\util\DTIUniformSeedGenerator.cpp" />
+    <ClCompile Include="..\..\..\util\DTIVolume.cpp" />
+    <ClCompile Include="..\..\..\util\DTIVolumeIO.cpp" />
+    <ClCompile Include="..\..\..\util\FunctionNodes.cpp" />
+    <ClCompile Include="..\..\..\util\FunctionParser.cpp" />
+    <ClCompile Include="..\..\..\util\PathwayIntersectionVolume.cpp" />
+    <ClCompile Include="..\..\..\util\ScalarVolume.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\util\Makefile" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{EC5C2B9B-5375-443E-B168-8A44ECA3053B}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>util</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>C:\Program Files %28x86%29\VTK\include\vtk-5.4;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LibraryPath>C:\Program Files %28x86%29\VTK\lib\vtk-5.4;$(LibraryPath)</LibraryPath>
+    <OutDir>..\..\lib\</OutDir>
+    <IntDir>obj\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>..\..\..\lib\win\$(Configuration)</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IntDir>obj\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions);USE_RAPID</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..;..;..\..\..\tnt;..\..\RAPID201;..\..\..\nifti;c:\vtk-5.8\include</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions);USE_RAPID</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..;..;..\..\tnt;..\..\RAPID201;..\..\nifti</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
