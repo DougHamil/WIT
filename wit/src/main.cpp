@@ -3,7 +3,7 @@
 	This is the introduction.
 */
 
-#include "Model/WITApplication.h"
+#include "WITApplication.h"
 
 int main(int argc, char *argv[])
 {
