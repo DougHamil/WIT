@@ -47,20 +47,10 @@ extern "C" {
 #include <string.h>
 #include <stdarg.h>
 
-/* include optional check for HAVE_FDOPEN here, from deleted config.h:
+#include "config.h"
 
-   uncomment the following line if fdopen() exists for your compiler and
-   compiler options
-*/
-/* #define HAVE_FDOPEN */
-
-
-#ifdef HAVE_ZLIB
-#if defined(ITKZLIB)
-#include "itk_zlib.h"
-#else
+#ifdef HAVE_ZLIB 
 #include "zlib.h"
-#endif
 #endif
 
 

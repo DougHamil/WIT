@@ -4,7 +4,7 @@
 #include <vector>
 class DTIFilterTree;
 class DTIFilter;
-class VOIManager;
+class ROIManager;
 class DTIPathway;
 class DTIFilterPathwayScalar;
 class DTIFilterAlgorithm;
@@ -15,16 +15,15 @@ class DTIQueryProcessor {
 
  public:
 
-  DTIQueryProcessor(VOIManager *mgr);
+  DTIQueryProcessor(ROIManager *mgr);
   virtual ~DTIQueryProcessor();
 
-  bool doesPathwayMatch(DTIPathway *pathway);
-  bool setVOIFilter (char *str);
-  const char *getVOIFilter ();
-  void resetVOIFilter(VOIManager *mgr);
+  bool doesPathwayMatch (DTIPathway *pathway);
+  bool setROIFilter (const char *str);
+  const char *getROIFilter ();
+  void resetROIFilter(ROIManager *mgr);
 
   void appendScalarFilter (DTIFilterPathwayScalar *filter);
-  void clearScalarFilters();
   void replaceScalarFilter (int rowIndex, PathwayProperty property, double minValue, double maxValue);
   void setAlgoFilter (DTIFilterAlgorithm *algorithm) { _algo_filter = algorithm; }
   

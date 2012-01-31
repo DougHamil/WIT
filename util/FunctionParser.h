@@ -9,7 +9,7 @@ University. All rights reserved. **/
 #include "tokens.h"
 #include "typedefs.h"
 
-class VOIManager;
+class ROIManager;
 class FuncNode;
 class DTIFilterTree;
 
@@ -18,7 +18,7 @@ public:
 
   // Methods:
 
-  FunctionParser (DTIFilterTree *function, VOIManager *constantManager);
+  FunctionParser (DTIFilterTree *function, ROIManager *constantManager);
   ~FunctionParser();
 
   int OK() { return function_OK; }
@@ -86,7 +86,7 @@ private:
   int inAbsoluteBars;
 
   DTIFilterTree *funcToUse;
-  VOIManager *roi_manager;
+  ROIManager *roi_manager;
 
 };
 

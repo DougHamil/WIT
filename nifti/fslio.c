@@ -198,16 +198,13 @@ int FslFileType(const char* fname)
   int retval=-1;
   if (fname==NULL) return retval;
   flen = strlen(fname);
-  /* debian@onerussian.com had to group conditions to avoid possible
-   * illegal memory read-ins */
   if (flen<5) return retval;  /* smallest name + extension is a.nii */
   if (strcmp(fname + flen - 4,".nii")==0)  retval=FSL_TYPE_NIFTI;
+  if (strcmp(fname + flen - 7,".nii.gz")==0)  retval=FSL_TYPE_NIFTI_GZ;
   if (strcmp(fname + flen - 4,".mnc")==0)  retval=FSL_TYPE_MINC;
+  if (strcmp(fname + flen - 7,".mnc.gz")==0)  retval=FSL_TYPE_MINC;
   if (strcmp(fname + flen - 4,".hdr")==0)  retval=FSL_TYPE_NIFTI_PAIR;
   if (strcmp(fname + flen - 4,".img")==0)  retval=FSL_TYPE_NIFTI_PAIR;
-  if ((retval==-1) && (flen<8)) return retval; /* small name + ext.gz is a.nii.gz */
-  if (strcmp(fname + flen - 7,".nii.gz")==0)  retval=FSL_TYPE_NIFTI_GZ;
-  if (strcmp(fname + flen - 7,".mnc.gz")==0)  retval=FSL_TYPE_MINC;
   if (strcmp(fname + flen - 7,".hdr.gz")==0)  retval=FSL_TYPE_NIFTI_PAIR_GZ;
   if (strcmp(fname + flen - 7,".img.gz")==0)  retval=FSL_TYPE_NIFTI_PAIR_GZ;
   if ( (retval==FSL_TYPE_NIFTI_PAIR) || (retval==FSL_TYPE_NIFTI_PAIR_GZ) ) {
@@ -293,10 +290,10 @@ char *FslMakeBaseName(const char *fname)
   basename = nifti_makebasename(fname);
   blen = strlen(basename);
 #ifdef HAVE_ZLIB
-  if ((blen>7) && (strcmp(basename + blen-7,".mnc.gz") == 0))
+  if (strcmp(basename + blen-7,".mnc.gz") == 0) 
     { basename[blen-7]='\0'; return basename; }
 #endif
-  if ((blen>4) && (strcmp(basename + blen-4,".mnc") == 0))
+  if (strcmp(basename + blen-4,".mnc") == 0) 
     { basename[blen-4]='\0'; return basename; }
   return basename;
 }
@@ -798,13 +795,10 @@ void* FslReadAllVolumes(FSLIO* fslio, char* filename)
   if (!znz_isnull(fslio->fileptr)) FslClose(fslio);  
   
   fslio->niftiptr = nifti_image_read(filename,1);
-
-  /* check for failure, from David Akers */
   if (fslio->niftiptr == NULL) {
-        FSLIOERR("FslReadAllVolumes: error reading NIfTI image");
-        return(NULL);
+    // xxx dla added this to handle errors.
+    return NULL;
   }
-
   FslSetFileType(fslio,fslio->niftiptr->nifti_type);
   FslSetWriteMode(fslio,0);
   return fslio->niftiptr->data;

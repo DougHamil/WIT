@@ -1,147 +1,107 @@
-/***********************************************************************
- * AUTHOR: David Akers <dakers>
- *   FILE: .//DTIPathwaySelection.cpp
- *   DATE: Fri Nov 11 13:25:38 2005
- *  DESCR: 
- ***********************************************************************/
 #include "DTIPathwaySelection.h"
-#include <util/typedefs.h>
+#include <typedefs.h>
+#include <cassert>
+#include "PDBHelper.h"
 
-/***********************************************************************
- *  Method: DTIPathwaySelection::DTIPathwaySelection
- *  Params: int numDTIPathways
- * Effects: 
- ***********************************************************************/
-DTIPathwaySelection::DTIPathwaySelection(int numPathways, bool init)
+/*
+Union
+Consider if:
+visible==true && id != SelectedGroup && assignemntsLocked == false
+if pass 
+set to selected group
+
+Intersect
+Consider if:
+visible==true && id == SelectedGroup && assignemntsLocked == Don't Care
+if fail 
+set to 0
+
+Subtract
+Consider if:
+visible==true && id == SelectedGroup && assignemntsLocked == Don't Care
+if pass
+set to 0
+
+Select All
+Consider if:
+visible==true && id == 0
+set to SelectedGroup
+
+Deselect All
+Consider if:
+visible==true && id == SelectedGroup
+set to 0
+
+*/
+DTIPathwaySelection DTIPathwaySelection::PruneForGesture(BOOLEAN_OPERATION op, DTIPathwayAssignment *assignment, PathwayGroupArray &array)
 {
-  _num_pathways = numPathways;
-  _selection = new bool[numPathways];
-  for (int i = 0; i < numPathways; i++) {
-    _selection[i] = init;
-  }
-  _dirty = true;
+	int numPathways = (int)assignment->size();
+	DTIPathwaySelection sel(numPathways, false);
+
+	bool shouldMatchGroup 	= op != UNION;
+	int  comparisionGroup 	= /*op == SELECT_ALL  ?  0 :*/ assignment->SelectedGroup();
+	bool assignmentsLocked 	= op == UNION  ?  !assignment->Locked() : true;
+
+	for(int i = 0; i < numPathways; i++)
+	{
+		int id = (*assignment)[i];
+		sel[i] = array[id].Visible() && ( (id == assignment->SelectedGroup()) == shouldMatchGroup) && assignmentsLocked;
+	}
+
+	//For union, all fibers from trash group can participate
+	if( op == UNION || op == SELECT_ALL)
+		for(int i = 0; i < numPathways; i++)
+			if((*assignment)[i] == DTI_COLOR_UNASSIGNED)
+				sel[i] = array[0].Visible();
+
+	return sel;
 }
 
-
-/***********************************************************************
- *  Method: DTIPathwaySelection::~DTIPathwaySelection
- *  Params: 
- * Effects: 
- ***********************************************************************/
-DTIPathwaySelection::~DTIPathwaySelection()
+/*
+Filter by stats
+Consider if:
+Active == true && 
+if( assignmentsLocked )
+	if( id == 0 || id == selected group)
+else
+	all
+*/
+DTIPathwaySelection DTIPathwaySelection::PruneForStatistics(DTIPathwayAssignment *assignment, PathwayGroupArray &array)
 {
-  delete[] _selection;
+	int numPathways = (int)assignment->size();
+	DTIPathwaySelection sel(numPathways, false);
+
+	if(assignment->Locked() == false)
+	{
+		for(int i = 0; i < numPathways; i++)
+		{
+			int id = (*assignment)[i];
+			sel[i] = array[id].Active();
+		}
+	}
+	else
+	{
+		bool group0Active = array[0].Active();
+		for(int i = 0; i < numPathways; i++)
+		{
+			int id = (*assignment)[i];
+			sel[i] = array[id].Active() && ( (id == 0 && group0Active) || id == assignment->SelectedGroup() );
+		}
+	}
+
+	return sel;
 }
 
-
-/***********************************************************************
- *  Method: DTIPathwaySelection::intersectWith
- *  Params: const DTIPathwaySelection &other
- * Returns: void
- * Effects: 
- ***********************************************************************/
-void
-DTIPathwaySelection::intersectWith(const DTIPathwaySelection &other)
+DTIPathwaySelection DTIPathwaySelection::PruneHiddenFibers(DTIPathwayAssignment *assignment, PathwayGroupArray &array)
 {
-  assert (other._num_pathways == _num_pathways);
+	int numPathways = (int)assignment->size();
+	DTIPathwaySelection sel(numPathways, false);
 
-  for (int i = 0; i < _num_pathways; i++) {
-    if (other[i] && _selection[i]) {
-      _selection[i] = true;
-    }
-    else {
-      _selection[i] = false;
-    }
-  }
-  _dirty = true;
+	for(int i = 0; i < numPathways; i++)
+	{
+		int id = (*assignment)[i];
+		sel[i] = array[id].Visible();
+	}
+
+	return sel;
 }
-
-
-/***********************************************************************
- *  Method: DTIPathwaySelection::append
- *  Params: const DTIPathwaySelection &other
- * Returns: void
- * Effects: 
- ***********************************************************************/
-void
-DTIPathwaySelection::append(const DTIPathwaySelection &other)
-{
-  for (int i = 0; i < _num_pathways; i++) {
-    if (other[i]) {
-      _selection[i] = true;
-    }
-  }
-  _dirty = true;
-}
-
-
-/***********************************************************************
- *  Method: DTIPathwaySelection::remove
- *  Params: const DTIPathwaySelection &other
- * Returns: void
- * Effects: 
- ***********************************************************************/
-void
-DTIPathwaySelection::remove(const DTIPathwaySelection &other)
-{
-  for (int i = 0; i < _num_pathways; i++) {
-    if (other[i]) {
-      _selection[i] = false;
-    }
-  }
-  _dirty = true;
-}
-
-
-/***********************************************************************
- *  Method: DTIPathwaySelection::replace
- *  Params: const DTIPathwaySelection &other
- * Returns: void
- * Effects: 
- ***********************************************************************/
-void
-DTIPathwaySelection::replace(const DTIPathwaySelection &other)
-{
-  for (int i = 0; i < _num_pathways; i++) {
-    _selection[i] = other[i];
-  }
-  _dirty = true;
-}
-
-
-/***********************************************************************
- *  Method: DTIPathwaySelection::copy
- *  Params: 
- * Returns: DTIPathwaySelection *
- * Effects: 
- ***********************************************************************/
-DTIPathwaySelection *
-DTIPathwaySelection::copy()
-{
-  DTIPathwaySelection *newSelection = new DTIPathwaySelection(_num_pathways);
-  newSelection->replace (*this);
-  newSelection->_dirty = _dirty;
-  return newSelection;
-}
-
-
-/***********************************************************************
- *  Method: DTIPathwaySelection::getNumSelectedPathways
- *  Params: 
- * Returns: int
- * Effects: 
- ***********************************************************************/
-int
-DTIPathwaySelection::getNumSelectedPathways()
-{
-  // xxx slow - should cache this.
-  int count = 0;
-  for (int i = 0; i < _num_pathways; i++) {
-    if (_selection[i]) {
-      count++;
-    }
-  }
-  return count;
-}
-
-

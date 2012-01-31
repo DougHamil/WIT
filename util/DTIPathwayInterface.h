@@ -15,6 +15,9 @@ class DTIPathwayFactoryInterface;
 class DTIPathwayInterface {
  public:
 
+  // XXX Move this into general statistic
+  std::vector <double> _path_grow_weight;
+
   // Append a segment to the path (adds to END of list)
   virtual void append (const DTIVector &vec);
 
@@ -27,19 +30,32 @@ class DTIPathwayInterface {
   // Remove the node from the path neighboring nodes will be joined by
   // an edge (0 = first element)
   virtual void remove(int position);
+  virtual void remove(int p1, int p2);
 
   // retrieve the x,y,z coords of a point in the pathway, by its index.
   virtual void getPoint (int index, double pt[3]) const;
+  virtual void getPoint (int index, float pt[3]) const;
+  virtual DTIVector getPointV (int index) const;
+
+  // get the direction from this point to the next in the index
   virtual void getDirection (int index, double pt[3]) const;
+  virtual void getDirection (int index, float pt[3]) const;
+  virtual DTIVector getDirectionV (int index) const;
+
+  // get the instantaneous symmetric tangent about this point
+  virtual DTIVector getTangentV(int index) const;
 
   // set the x,y,z coords of a point in the pathway, by its index.
-
   virtual void setPoint (int index, const double pt[3]);
+  virtual void setPoint (int index, const DTIVector &vec);
+  
+  virtual double getStepSize() const;
 
   // retrieve a point statistic for a point in the pathway, by the point
   // index and the type of statistic:
   virtual double getPointStatistic (int index, PathwayProperty statIndex);
   virtual double getPathStatistic (PathwayProperty statIndex);
+  virtual int getNumPathStatistics(){return (int)_path_stat_vector.size();}
 
   virtual void initializePathStatistics (int numStatistics, std::vector<DTIPathwayStatisticHeader* > *headers, bool initializePerPoint);
   virtual void setPathStatistic (int statIndex, double stat);
@@ -47,6 +63,8 @@ class DTIPathwayInterface {
   //  virtual void appendPointStatistic (int statIndex, double stat);
 
   //  PathwayProperty getLuminanceCacheIndex() { return _point_stat_array.size(); }
+  
+  virtual void xformPathway(TNT::Array2D<float> xform);
 
   // Get number of points in the pathway.
   virtual int getNumPoints() const;
@@ -59,6 +77,12 @@ class DTIPathwayInterface {
   virtual void setSeedPointIndex (int index) { _seed_point_index = index; }
   int getSeedPointIndex() { return _seed_point_index;}
 
+  // XXX This is a quick hack, because I need reference counting for
+  // my metropolis sampler, but don't want to implement it fully
+  void addReference(){ _ref_count++; }
+  void remReference(){ _ref_count--; if(_ref_count<0) std::cerr << "_ref_count < 0" << std::endl;}
+  int getReferenceCount(){return _ref_count;}
+
   DTIPathwayInterface *deepCopy(DTIPathwayFactoryInterface *pathFactory);
 
   DTIPathwayInterface *resample (DTIPathwayFactoryInterface *pathFactory, double stepMM);
@@ -69,6 +93,7 @@ class DTIPathwayInterface {
  protected:
   int _seed_point_index;
   int _count;
+  int _ref_count;
 
   DTIPathwayAlgorithm _algo;
 

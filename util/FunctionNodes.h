@@ -6,12 +6,11 @@ University. All rights reserved. **/
 
 #include "DTIFilterTree.h"
 
-class DTIFilterVOI;
+class DTIFilterROI;
 class DTIFilterTree;
 class ConstantManager;
 class DTIPathway;
 #include "typedefs.h"
-#include <stdio.h>
 
 class FuncNode {
 
@@ -122,15 +121,15 @@ class NodeSubOp : public NodeBinary {
 
 };
 
-class NodeFilterVOI : public NodeLeaf {
+class NodeFilterROI : public NodeLeaf {
 public:
-	NodeFilterVOI (DTIFilterTree *function, DTIFilterVOI *filter);
-	~NodeFilterVOI();
+	NodeFilterROI (DTIFilterTree *function, DTIFilterROI *filter);
+	~NodeFilterROI();
 	void print(); 
 	virtual bool pathwayMatches (DTIPathway *pathway);
 	FuncNode *copy (DTIFilterTree *newFunc);
 private:
-	DTIFilterVOI *_filter;
+	DTIFilterROI *_filter;
 };
 
 #endif

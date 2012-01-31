@@ -9,7 +9,7 @@ University. All rights reserved. **/
  *************************************************************************/
 #include "FunctionNodes.h"
 #include "DTIPathway.h"
-#include "DTIFilterVOI.h"
+#include "DTIFilterROI.h"
 
 /*************************************************************************
  * Function Name: FuncNode::FuncNode
@@ -456,36 +456,36 @@ NodeSubOp::copy(DTIFilterTree *newFunc)
 
 
 /*************************************************************************
- * Function Name: NodeFilterVOI::NodeFilterVOI
- * Parameters: DTIFilterTree *function, DTIFilterVOI *filter
+ * Function Name: NodeFilterROI::NodeFilterROI
+ * Parameters: DTIFilterTree *function, DTIFilterROI *filter
  * Effects: 
  *************************************************************************/
 
-NodeFilterVOI::NodeFilterVOI(DTIFilterTree *function, DTIFilterVOI *filter) : NodeLeaf (function)
+NodeFilterROI::NodeFilterROI(DTIFilterTree *function, DTIFilterROI *filter) : NodeLeaf (function)
 {
 	_filter = filter;
 }
 
 
 /*************************************************************************
- * Function Name: NodeFilterVOI::~NodeFilterVOI
+ * Function Name: NodeFilterROI::~NodeFilterROI
  * Parameters: 
  * Effects: 
  *************************************************************************/
 
-NodeFilterVOI::~NodeFilterVOI()
+NodeFilterROI::~NodeFilterROI()
 {
 }
 
 
 /*************************************************************************
- * Function Name: NodeFilterVOI::print
+ * Function Name: NodeFilterROI::print
  * Parameters: 
  * Returns: void
  * Effects: 
  *************************************************************************/
 void
-NodeFilterVOI::print()
+NodeFilterROI::print()
 {
   assert (false);
   return;
@@ -493,26 +493,26 @@ NodeFilterVOI::print()
 
 
 /*************************************************************************
- * Function Name: NodeFilterVOI::getMatchingPathways
+ * Function Name: NodeFilterROI::getMatchingPathways
  * Parameters: 
  * Returns: DTIPathwayDatabase *
  * Effects: 
  *************************************************************************/
 bool
-NodeFilterVOI::pathwayMatches (DTIPathway *pathway)
+NodeFilterROI::pathwayMatches (DTIPathway *pathway)
 {
 	return this->_filter->matches(pathway);
 }
 
 
 /*************************************************************************
- * Function Name: NodeFilterVOI::copy
+ * Function Name: NodeFilterROI::copy
  * Parameters: DTIFilterTree *newFunc
  * Returns: FuncNode *
  * Effects: 
  *************************************************************************/
 FuncNode *
-NodeFilterVOI::copy(DTIFilterTree *newFunc)
+NodeFilterROI::copy(DTIFilterTree *newFunc)
 {
 	assert (false);
 	return NULL;

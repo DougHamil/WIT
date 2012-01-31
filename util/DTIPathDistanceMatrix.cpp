@@ -4,6 +4,7 @@
  *   DATE: Sun Jan 29 16:00:14 2006
  *  DESCR: 
  ***********************************************************************/
+#include <typedefs.h>
 #include "DTIPathDistanceMatrix.h"
 #include <iostream>
 #include <math.h>
@@ -67,3 +68,27 @@ DTIPathDistanceMatrix::SetDistance(int i, int j, float value)
 }
 
 
+/***********************************************************************
+ *  Method: DTIPathwayIO::loadDistanceMatrix
+ *  Params: std::ifstream &theStream
+ * Returns: DTIPathDistanceMatrix *
+ * Effects: 
+ ***********************************************************************/
+DTIPathDistanceMatrix *
+DTIPathDistanceMatrix::loadDistanceMatrix(std::istream &theStream)
+{
+  int n = readScalar<int> (theStream);
+  DTIPathDistanceMatrix *matrix = new DTIPathDistanceMatrix(n);
+  int count = 0;
+  float totalF = 0;
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < i; j++) {
+      float f = readScalar<float> (theStream);
+      matrix->SetDistance (i,j,f);
+      count++;
+      totalF += matrix->GetDistance (i,j);
+    }
+  }
+  std::cerr << "Distance matrix contains " << count << " distances. Average distance = " << totalF / (count) << std::endl;
+  return matrix;
+}

@@ -6,43 +6,48 @@ University. All rights reserved. **/
 
 class DTIPathwayDatabase;
 class DTIPathway;
-class ScalarVolume;
-class VOIManager;
-class DTIPathDistanceMatrix;
+class ROIManager;
 class DTIPathwaySelection;
 
+#include "typedefs.h"
 #include <fstream>
 #include <vector>
-#include <stdint.h>
 
-void writeFloat (float f, std::ofstream &theStream);
-void writeInt (int i, std::ofstream &theStream);
-float readFloat (std::ifstream &theStream);
-int readInt (std::ifstream &theStream);
+class DTIPathwayIO 
+{
+ public:
+  static void saveDatabaseAny(DTIPathwayDatabase *db, bool bOverwrite, std::string filename, double ACPC[3]=NULL, DTIPathwaySelection *selection = NULL, bool bVerbose = false);
+  // PDB
+  static DTIPathwayDatabase *loadAndAppendDatabasePDB(std::istream &pdbStream, DTIPathwayDatabase * oldPdb=0, bool bComputeRAPID = true, double ACPC[3] = NULL, double vox_size[3] = NULL);
+  static void saveDatabasePDB (DTIPathwayDatabase *pathways, std::ostream &theStream, double ACPC[3]=NULL, DTIPathwaySelection *selection = NULL);
+  static void appendDatabaseFile (DTIPathwayDatabase *pathways, const char* filename, DTIPathwaySelection *selection = NULL);  
+  static void savePathwayPDB (DTIPathway *pathway, std::ostream &theStream, DTIPathwayDatabase *db, bool debug);
+  // BFLOAT
+  static DTIPathwayDatabase *loadDatabaseBFLOAT (std::ifstream &theStream, int numPathwaysToLoad = -1, bool bSplineCompress = false, bool bCaminoNoStats = false);
+  static void loadAndAppendDatabaseBFLOAT (DTIPathwayDatabase *pdb, std::ifstream &theStream, int numPathwaysToLoad = -1, bool bSplineCompress = false, bool bCaminoNoStats = false);
+  static int loadPathwayBFLOAT(DTIPathway* pathway, std::ifstream &theStream, bool bSplineCompress = false, bool bCaminoNoStats = true);
+  static void savePathwayBFLOAT(DTIPathway* pathway, std::ostream &theStream, bool bSplineCompress = false, bool bCaminoNoStats = true);
+  static void saveDatabaseBFLOAT(DTIPathwayDatabase *db,std::ostream &pdbStream, DTIPathwaySelection *selection = NULL, bool bSplineComress = false, bool bVerbose = false); 
+  static int loadPathwaySegmentBFLOAT(DTIPathway* pathway, std::ifstream &pdbStream, short p1, short p2, bool bSplineCompress = false);
 
-class DTIPathwayIO {
+  // DTIQuery
+  static void openDatabase (DTIPathwayDatabase *db, const char *filename);
+  static void appendFileOffsetsToDatabaseFile (int numPathways, const uint64_t *fileOffsets, const char *filename);    
 
- private:
+protected:
   DTIPathwayIO() {}
   virtual ~DTIPathwayIO() {}
 
-  static void savePathway (DTIPathway *pathway, std::ofstream &theStream, DTIPathwayDatabase *db, const double *mx, bool debug);
-  static DTIPathway *loadPathway (std::istream &theStream, DTIPathwayDatabase *db, bool multiplyMatrix);
-
- public:
-
-  static DTIPathwayDatabase *loadDatabase(std::istream &pdbStream, DTIPathwayDatabase *db, DTIPathwaySelection *sel,int versionNumber, unsigned int headerSize);
-  static DTIPathwayDatabase *loadDatabaseNew(std::istream &pdbStream, DTIPathwayDatabase * oldPdb, bool bComputeRAPID, double ACPC[3], double vox_size[3]);
+  //! load version 2 pdb
+  static void loadDatabasePDB2Ver2(std::istream &theStream, DTIPathwayDatabase *db, bool multiplyMatrix, unsigned int headerSize);
+  //! load version 3 pdb
   static void loadDatabasePDB2Ver3(std::istream &theStream, DTIPathwayDatabase *db, bool multiplyMatrix);
-  static void openDatabase (DTIPathwayDatabase *db, const char *filename);
-  static uint64_t* appendDatabaseFile (DTIPathwayDatabase *pathways, const char* filename, DTIPathwaySelection *selection = NULL);
-  static void appendFileOffsetsToDatabaseFile (int numPathways, const uint64_t *fileOffsets, const char *filename);
-  static void saveDatabasePDB(DTIPathwayDatabase *db, std::ostream &theStream, double ACPC[3], DTIPathwaySelection *selection);
-  static void saveDistanceMatrix (DTIPathDistanceMatrix *matrix, std::ofstream &theStream);
-  static DTIPathDistanceMatrix *loadDistanceMatrix (std::ifstream &theStream);
-  static DTIPathwaySelection *loadPathwaySelection (std::ifstream &theStream);
-  static void savePathwaySelection (DTIPathwaySelection *sel, std::ofstream &theStream);
-};
 
+  // Spline BFLOAT
+  const static int SPLINE_MIN_CTRL_POINTS = 5;
+  static DTIPathway* CompressPathway (const DTIPathway* pathIn, float fReduceTarget, float fCompressThresh=-1);
+  static void DecompressPathway (DTIPathway* pathOut, const DTIPathway* pathIn, uint iSampleQuantity, uint iDegree=3);
+  static void CalculateError(const DTIPathway* pathCtrl, const DTIPathway* path, float &fAvrError, float &fRMSError, float &fMaxError);
+};
 
 #endif

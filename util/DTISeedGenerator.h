@@ -1,7 +1,7 @@
 #ifndef SEED_GENERATOR_H
 #define SEED_GENERATOR_H
 
-#include <util/typedefs.h>
+#include <typedefs.h>
 
 class DTISeedGenerator {
 
@@ -12,6 +12,11 @@ class DTISeedGenerator {
   virtual void getNextSeed (DTIVector &pt) = 0;
   virtual void initialize () = 0;
   virtual bool finished() const = 0;
+  virtual DTIVector getPos()=0;
+  virtual DTIVector getSize()=0;
+
+  virtual double getProgress()=0;
+  virtual void setProgress(double d)=0;
  
 };
 

@@ -14,12 +14,11 @@ University. All rights reserved. **/
 //#include <functionConstant.h>
 class DTIPathwayDatabase;
 #include <list>
+using namespace std;
 #include <string.h>
 
-using namespace std;
-
 class DTIPathway;
-class VOIManager;
+class ROIManager;
 
 struct dependent {
   void *obj;
@@ -45,7 +44,7 @@ public:
   friend ostream &operator<< (ostream &theStream, DTIFilterTree &theFunction);
   friend istream &operator>> (istream &theStream, DTIFilterTree &theFunction);
 
-  void setVOIManager (VOIManager *manager) {roi_manager = manager; }
+  void setROIManager (ROIManager *manager) {roi_manager = manager; }
   int isAttachedTo (const DTIFilterTree *otherFunc) const;
   void attachMeTo (DTIFilterTree *otherFunc);
   void unattachAll();
@@ -96,7 +95,7 @@ private:
   NumberType secondary_value;
   char var_name[255];
 
-  VOIManager *roi_manager;
+  ROIManager *roi_manager;
   FuncNode *theFunction;
 
   // Dependent objects hash-table

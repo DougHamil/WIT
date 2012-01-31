@@ -12,17 +12,7 @@ University. All rights reserved. **/
 #include <stdexcept>
 #include <tnt/tnt_array1d_utils.h>
 #include <math.h>
-#include "ScalarVolume.h"
 #include <list>
-
-#ifdef USE_RAPID
-#include <RAPID.H>
-#else
-#include <ozcollide/ozcollide.h>
-#include <ozcollide/aabbtreepoly_builder.h>
-#include <ozcollide/polygon.h>
-using namespace ozcollide;
-#endif
 
 #ifndef M_PI
 #define M_PI 3.141592
@@ -49,112 +39,48 @@ DTIPathway::DTIPathway(DTIPathwayAlgorithm algo) : DTIPathwayInterface(algo)
 
 DTIPathway::~DTIPathway()
 {
-#ifdef USE_RAPID
   delete _coll_model;
-#else
-  _coll_model->destroy();
-#endif
 }
 
-
-collisionModel
-DTIPathway::generateCollisionModel()
+extern int tottris;
+Opcode::Model *DTIPathway::getCollisionModel()
 {
   double EPS = 0.001;
-#ifdef USE_RAPID
-  RAPID_model *_rapid_model = new RAPID_model;
-  _rapid_model->BeginModel();
-  int counter = 0;
-  DTIGeometryVector *previous = NULL;
-  for (std::vector<DTIGeometryVector *>::iterator iter = _point_vector.begin();
-        iter != _point_vector.end();
-        iter++)
-  {
-    DTIGeometryVector *current = *iter;
-    //std::cerr << "current: " << current << std::endl;
-    if (counter != 0)
-    {
-
-      double p1[3] = {(*previous)[0]+EPS, (*previous)[1], (*previous)[2]};
-
-      double p2[3] = {(*previous)[0]+EPS, (*previous)[1] + EPS, (*previous)[2]};
-      double p3[3] = {(*current)[0], (*current)[1], (*current)[2]};
-      //std::cerr << "pt1: " << p1[0] << ", " << p1[1] << ", " << p3[2] << std::endl;
-      _rapid_model->AddTri (p1, p2, p3, counter);
-    }
-    previous = current;
-    counter++;
-  }
-  _rapid_model->EndModel();
-  return _rapid_model;
-#else
-  AABBTreePolyBuilder builder;
-  Vector<Vec3f> vertList;
-  Vector<Polygon> triList;
-
-  int counter = 0;
-  DTIGeometryVector *previous = NULL;
-  for (std::vector<DTIGeometryVector *>::iterator iter = _point_vector.begin();
-        iter != _point_vector.end();
-        iter++)
-  {
-    DTIGeometryVector *current = *iter;
-    //std::cerr << "current: " << current << std::endl;
-    if (counter != 0)
-    {
-
-      double p1[3] = {(*previous)[0]+EPS, (*previous)[1], (*previous)[2]};
-
-      double p2[3] = {(*previous)[0]+EPS, (*previous)[1] + EPS, (*previous)[2]};
-      double p3[3] = {(*current)[0], (*current)[1], (*current)[2]};
-      vertList.add(Vec3f(p1[0], p1[1], p1[2]));
-      vertList.add(Vec3f(p2[0], p2[1], p2[2]));
-      vertList.add(Vec3f(p3[0], p3[1], p3[2]));
-
-      int indices[3];
-      indices[0] = counter++;
-      indices[1] = counter++;
-      indices[2] = counter++;
-      Polygon *poly = new Polygon();
-      poly->setIndicesMemory(3,&indices[0]);
-      triList.add(*poly);
-    }
-    previous = current;
-  }
-
-  return builder.buildFromPolys(triList.mem(),//polygons
-                                               triList.size(),//polygon count
-                                               vertList.mem(),//vertices
-                                               vertList.size());//vertices count
-#endif
-}
-/*************************************************************************
- * Function Name: DTIPathway::getRAPIDModel
- * Parameters: 
- * Returns: RAPID_model *
- * Effects: 
- *************************************************************************/
-collisionModel
-DTIPathway::getCollisionModel()
-{
-
   if (_coll_model) {
     return _coll_model;
   }
   else {
-    _coll_model = generateCollisionModel();
+    _coll_model = new Opcode::Model;
+
+	int numVerts = _point_vector.size();
+	int numTris = _point_vector.size() - 1;
+	IceMaths::Point *verts = new IceMaths::Point[numVerts];
+	IceMaths::IndexedTriangle *tris = new IceMaths::IndexedTriangle[numTris];
+	int index = 0;
+    for (std::vector<DTIGeometryVector *>::iterator iter = _point_vector.begin(); iter != _point_vector.end(); ++iter)
+	{
+		DTIGeometryVector *vec = *iter;
+
+		verts[index] = IceMaths::Point((*vec)[0], (*vec)[1], (*vec)[2]);
+
+		if(index != 0)
+		{
+			tris[index-1] = IceMaths::IndexedTriangle(index - 1, index - 1, index);
+		}
+
+		++index;
+	}
+
+	Opcode::OPCODECREATE OPCC;
+
+	OPCC.mIMesh->SetNbTriangles(numTris);
+	OPCC.mIMesh->SetNbVertices(numVerts);
+	OPCC.mIMesh->SetPointers(tris, verts);
+	
+	_coll_model->Build(OPCC);
+
     return _coll_model;
   }
 }
 
-
-/*
-double getFA (ScalarVolume *volume, double x, double y, double z) {
-  int xInt = (int) floor(x+0.5);
-  int yInt = (int) floor(y+0.5);
-  int zInt = (int) floor(z+0.5);
-  double fa = volume->getFA(xInt,yInt,zInt);
-  return fa;
-}
-*/
 

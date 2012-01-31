@@ -74,7 +74,10 @@ DTIFilterPathwayScalar::setMaxValue(double maximum)
 bool
 DTIFilterPathwayScalar::matches(DTIPathway *pathway)
 {
-  double valueToCompare = pathway->getPathStatistic (_property);
+  // Default to allow pathways that don't have this statistic
+  double valueToCompare = _min_value;
+  if( _property < pathway->getNumPathStatistics() )
+    valueToCompare = pathway->getPathStatistic (_property);
   if (valueToCompare >= _min_value && valueToCompare <= _max_value) {
     return true;
   }

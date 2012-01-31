@@ -11,83 +11,137 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\util\Box-Muller.h" />
     <ClInclude Include="..\..\..\util\ComputeListener.h" />
-    <ClInclude Include="..\..\..\util\DBInterface.h" />
-    <ClInclude Include="..\..\..\util\DTIDeterministicPathTracer.h" />
+    <ClInclude Include="..\..\..\util\dcdf.h" />
+    <ClInclude Include="..\..\..\util\DTIConTrackPDF.h" />
     <ClInclude Include="..\..\..\util\DTIFilter.h" />
     <ClInclude Include="..\..\..\util\DTIFilterAlgorithm.h" />
-    <ClInclude Include="..\..\..\util\DTIFilterComplex.h" />
-    <ClInclude Include="..\..\..\util\DTIFilterCube.h" />
     <ClInclude Include="..\..\..\util\DTIFilterPathwayScalar.h" />
-    <ClInclude Include="..\..\..\util\DTIFilterSphere.h" />
     <ClInclude Include="..\..\..\util\DTIFilterTree.h" />
-    <ClInclude Include="..\..\..\util\DTIFilterVOI.h" />
     <ClInclude Include="..\..\..\util\DTIMath.h" />
     <ClInclude Include="..\..\..\util\DTIPathDistanceMatrix.h" />
-    <ClInclude Include="..\..\..\util\DTIPathTracer.h" />
     <ClInclude Include="..\..\..\util\DTIPathway.h" />
     <ClInclude Include="..\..\..\util\DTIPathwayAlgorithmHeader.h" />
-    <ClInclude Include="..\..\..\util\DTIPathwayAssignment.h" />
     <ClInclude Include="..\..\..\util\DTIPathwayDatabase.h" />
     <ClInclude Include="..\..\..\util\DTIPathwayFactory.h" />
     <ClInclude Include="..\..\..\util\DTIPathwayFactoryInterface.h" />
     <ClInclude Include="..\..\..\util\DTIPathwayInterface.h" />
+    <ClInclude Include="..\..\..\util\DTIPathwayIntersectionVolume.h" />
     <ClInclude Include="..\..\..\util\DTIPathwayIO.h" />
     <ClInclude Include="..\..\..\util\DTIPathwaySelection.h" />
     <ClInclude Include="..\..\..\util\DTIPathwayStatisticHeader.h" />
     <ClInclude Include="..\..\..\util\DTIQueryProcessor.h" />
+    <ClInclude Include="..\..\..\util\DTIRandomSeedGenerator.h" />
+    <ClInclude Include="..\..\..\util\DTIRandomSeedGeneratorMask.h" />
     <ClInclude Include="..\..\..\util\DTISeedGenerator.h" />
     <ClInclude Include="..\..\..\util\DTIStats.h" />
-    <ClInclude Include="..\..\..\util\DTISTTPathTracer.h" />
-    <ClInclude Include="..\..\..\util\DTITENDPathTracer.h" />
-    <ClInclude Include="..\..\..\util\DTIUniformSeedGenerator.h" />
+    <ClInclude Include="..\..\..\util\DTITrackingData.h" />
+    <ClInclude Include="..\..\..\util\DTITractParamsFile.h" />
     <ClInclude Include="..\..\..\util\DTIVolume.h" />
-    <ClInclude Include="..\..\..\util\DTIVolumeInterface.h" />
     <ClInclude Include="..\..\..\util\DTIVolumeIO.h" />
     <ClInclude Include="..\..\..\util\FunctionNodes.h" />
     <ClInclude Include="..\..\..\util\FunctionParser.h" />
     <ClInclude Include="..\..\..\util\io_utils.h" />
-    <ClInclude Include="..\..\..\util\PathwayIntersectionVolume.h" />
-    <ClInclude Include="..\..\..\util\ScalarVolume.h" />
-    <ClInclude Include="..\..\..\util\ScalarVolumeInterface.h" />
+    <ClInclude Include="..\..\..\util\jama\jama_cholesky.h" />
+    <ClInclude Include="..\..\..\util\jama\jama_eig.h" />
+    <ClInclude Include="..\..\..\util\jama\jama_lu.h" />
+    <ClInclude Include="..\..\..\util\jama\jama_qr.h" />
+    <ClInclude Include="..\..\..\util\jama\jama_svd.h" />
+    <ClInclude Include="..\..\..\util\PathwayGroup.h" />
+    <ClInclude Include="..\..\..\util\PDBHelper.h" />
+    <ClInclude Include="..\..\..\util\random.h" />
+    <ClInclude Include="..\..\..\util\ROIFactory.h" />
+    <ClInclude Include="..\..\..\util\ROIManager.h" />
+    <ClInclude Include="..\..\..\util\SubjectData.h" />
+    <ClInclude Include="..\..\..\util\tclap\Arg.h" />
+    <ClInclude Include="..\..\..\util\tclap\ArgException.h" />
+    <ClInclude Include="..\..\..\util\tclap\CmdLine.h" />
+    <ClInclude Include="..\..\..\util\tclap\CmdLineInterface.h" />
+    <ClInclude Include="..\..\..\util\tclap\CmdLineOutput.h" />
+    <ClInclude Include="..\..\..\util\tclap\Constraint.h" />
+    <ClInclude Include="..\..\..\util\tclap\DocBookOutput.h" />
+    <ClInclude Include="..\..\..\util\tclap\HelpVisitor.h" />
+    <ClInclude Include="..\..\..\util\tclap\IgnoreRestVisitor.h" />
+    <ClInclude Include="..\..\..\util\tclap\MultiArg.h" />
+    <ClInclude Include="..\..\..\util\tclap\MultiSwitchArg.h" />
+    <ClInclude Include="..\..\..\util\tclap\OptionalUnlabeledTracker.h" />
+    <ClInclude Include="..\..\..\util\tclap\StdOutput.h" />
+    <ClInclude Include="..\..\..\util\tclap\SwitchArg.h" />
+    <ClInclude Include="..\..\..\util\tclap\UnlabeledMultiArg.h" />
+    <ClInclude Include="..\..\..\util\tclap\UnlabeledValueArg.h" />
+    <ClInclude Include="..\..\..\util\tclap\ValueArg.h" />
+    <ClInclude Include="..\..\..\util\tclap\ValuesConstraint.h" />
+    <ClInclude Include="..\..\..\util\tclap\VersionVisitor.h" />
+    <ClInclude Include="..\..\..\util\tclap\Visitor.h" />
+    <ClInclude Include="..\..\..\util\tclap\XorHandler.h" />
+    <ClInclude Include="..\..\..\util\tnt\tnt.h" />
+    <ClInclude Include="..\..\..\util\tnt\tnt_array1d.h" />
+    <ClInclude Include="..\..\..\util\tnt\tnt_array1d_utils.h" />
+    <ClInclude Include="..\..\..\util\tnt\tnt_array2d.h" />
+    <ClInclude Include="..\..\..\util\tnt\tnt_array2d_utils.h" />
+    <ClInclude Include="..\..\..\util\tnt\tnt_array3d.h" />
+    <ClInclude Include="..\..\..\util\tnt\tnt_array3d_utils.h" />
+    <ClInclude Include="..\..\..\util\tnt\tnt_cmat.h" />
+    <ClInclude Include="..\..\..\util\tnt\tnt_fortran_array1d.h" />
+    <ClInclude Include="..\..\..\util\tnt\tnt_fortran_array1d_utils.h" />
+    <ClInclude Include="..\..\..\util\tnt\tnt_fortran_array2d.h" />
+    <ClInclude Include="..\..\..\util\tnt\tnt_fortran_array2d_utils.h" />
+    <ClInclude Include="..\..\..\util\tnt\tnt_fortran_array3d.h" />
+    <ClInclude Include="..\..\..\util\tnt\tnt_fortran_array3d_utils.h" />
+    <ClInclude Include="..\..\..\util\tnt\tnt_i_refvec.h" />
+    <ClInclude Include="..\..\..\util\tnt\tnt_math_utils.h" />
+    <ClInclude Include="..\..\..\util\tnt\tnt_sparse_matrix_csr.h" />
+    <ClInclude Include="..\..\..\util\tnt\tnt_stopwatch.h" />
+    <ClInclude Include="..\..\..\util\tnt\tnt_subscript.h" />
+    <ClInclude Include="..\..\..\util\tnt\tnt_vec.h" />
+    <ClInclude Include="..\..\..\util\tnt\tnt_version.h" />
     <ClInclude Include="..\..\..\util\tokens.h" />
     <ClInclude Include="..\..\..\util\typedefs.h" />
-    <ClInclude Include="..\..\..\util\VOIManager.h" />
+    <ClInclude Include="..\..\..\util\typedefs_array.h" />
+    <ClInclude Include="..\..\..\util\typedefs_property.h" />
+    <ClInclude Include="..\..\..\util\ui_utils.h" />
+    <ClInclude Include="..\..\..\util\Wm4\Wm4BandedMatrix.h" />
+    <ClInclude Include="..\..\..\util\Wm4\Wm4BSplineCurveFit.h" />
+    <ClInclude Include="..\..\..\util\Wm4\Wm4BSplineFitBasis.h" />
+    <ClInclude Include="..\..\..\util\Wm4\Wm4Utils.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\util\DTIDeterministicPathTracer.cpp" />
+    <ClCompile Include="..\..\..\util\dcdf.cpp" />
     <ClCompile Include="..\..\..\util\DTIFilter.cpp" />
     <ClCompile Include="..\..\..\util\DTIFilterAlgorithm.cpp" />
-    <ClCompile Include="..\..\..\util\DTIFilterComplex.cpp" />
-    <ClCompile Include="..\..\..\util\DTIFilterCube.cpp" />
     <ClCompile Include="..\..\..\util\DTIFilterPathwayScalar.cpp" />
-    <ClCompile Include="..\..\..\util\DTIFilterSphere.cpp" />
     <ClCompile Include="..\..\..\util\DTIFilterTree.cpp" />
-    <ClCompile Include="..\..\..\util\DTIFilterVOI.cpp" />
     <ClCompile Include="..\..\..\util\DTIMath.cpp" />
     <ClCompile Include="..\..\..\util\DTIPathDistanceMatrix.cpp" />
-    <ClCompile Include="..\..\..\util\DTIPathTracer.cpp" />
     <ClCompile Include="..\..\..\util\DTIPathway.cpp" />
-    <ClCompile Include="..\..\..\util\DTIPathwayAssignment.cpp" />
     <ClCompile Include="..\..\..\util\DTIPathwayDatabase.cpp" />
     <ClCompile Include="..\..\..\util\DTIPathwayFactory.cpp" />
     <ClCompile Include="..\..\..\util\DTIPathwayInterface.cpp" />
+    <ClCompile Include="..\..\..\util\DTIPathwayIntersectionVolume.cpp" />
     <ClCompile Include="..\..\..\util\DTIPathwayIO.cpp" />
     <ClCompile Include="..\..\..\util\DTIPathwaySelection.cpp" />
     <ClCompile Include="..\..\..\util\DTIQueryProcessor.cpp" />
+    <ClCompile Include="..\..\..\util\DTIRandomSeedGenerator.cpp" />
+    <ClCompile Include="..\..\..\util\DTIRandomSeedGeneratorMask.cpp" />
     <ClCompile Include="..\..\..\util\DTIStats.cpp" />
-    <ClCompile Include="..\..\..\util\DTISTTPathTracer.cpp" />
-    <ClCompile Include="..\..\..\util\DTITENDPathTracer.cpp" />
-    <ClCompile Include="..\..\..\util\DTIUniformSeedGenerator.cpp" />
-    <ClCompile Include="..\..\..\util\DTIVolume.cpp" />
+    <ClCompile Include="..\..\..\util\DTITrackingData.cpp" />
+    <ClCompile Include="..\..\..\util\DTITractParamsFile.cpp" />
     <ClCompile Include="..\..\..\util\DTIVolumeIO.cpp" />
     <ClCompile Include="..\..\..\util\FunctionNodes.cpp" />
     <ClCompile Include="..\..\..\util\FunctionParser.cpp" />
-    <ClCompile Include="..\..\..\util\PathwayIntersectionVolume.cpp" />
-    <ClCompile Include="..\..\..\util\ScalarVolume.cpp" />
+    <ClCompile Include="..\..\..\util\PathwayGroup.cpp" />
+    <ClCompile Include="..\..\..\util\PDBHelper.cpp" />
+    <ClCompile Include="..\..\..\util\ROIManager.cpp" />
+    <ClCompile Include="..\..\..\util\SubjectData.cpp" />
+    <ClCompile Include="..\..\..\util\ui_utils.cpp" />
+    <ClCompile Include="..\..\..\util\Wm4\Wm4BSplineCurveFit.cpp" />
+    <ClCompile Include="..\..\..\util\Wm4\Wm4BSplineFitBasis.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\util\Makefile" />
+    <None Include="..\..\..\util\Wm4\Wm4BandedMatrix.inl" />
+    <None Include="..\..\..\util\Wm4\Wm4Utils.inl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EC5C2B9B-5375-443E-B168-8A44ECA3053B}</ProjectGuid>
@@ -98,7 +152,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -129,15 +183,16 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IntDir>obj\$(Configuration)\</IntDir>
+    <IncludePath>../../../util;../../../opcode;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions);USE_RAPID</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..;..;..\..\..\tnt;..\..\RAPID201;..\..\..\nifti;c:\vtk-5.8\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..;..;..\..\..\tnt;..\..\..\nifti;c:\vtk-5.8\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>

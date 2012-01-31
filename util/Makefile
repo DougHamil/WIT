@@ -1,47 +1,29 @@
-# Makefile for util (utility library used by CINCH and DTIQuery)
+# Makefile for util (utility library used by contrack_gen)
 #
-
 include ../Makefile.definitions
 
-CC = g++
-
-AR = ar csr $@
-RM = rm -f
-
-OUTPUT_DIR = ../lib
-
-NIFTI_INCLUDE_PATH = -I../nifti
-
-CFLAGS = -O -Wno-deprecated -DUSE_RAPID -I../ $(NIFTI_INCLUDE_PATH) $(TNT_INCLUDE_PATH) \
-	$(RAPID_INCLUDE_PATH) $(SYS_INCLUDE_PATHS) $(VTK_INCLUDE_PATHS)
-
-SRCS = DTIFilter.cpp DTIFilterCube.cpp DTIFilterVOI.cpp \
-	DTIFilterPathwayScalar.cpp DTIPathDistanceMatrix.cpp \
-	DTIPathwayIO.cpp DTIPathway.cpp DTIPathwayDatabase.cpp \
-	DTIVolume.cpp DTIVolumeIO.cpp ScalarVolume.cpp DTIFilterTree.cpp \
-	FunctionParser.cpp FunctionNodes.cpp DTIFilterAlgorithm.cpp \
-	DTIPathwayFactory.cpp DTIPathwayInterface.cpp \
-	DTIFilterSphere.cpp DTIFilterComplex.cpp DTIQueryProcessor.cpp \
-	DTIPathTracer.cpp DTITENDPathTracer.cpp \
-	DTISTTPathTracer.cpp DTIUniformSeedGenerator.cpp \
-	DTIDeterministicPathTracer.cpp PathwayIntersectionVolume.cpp \
-	DTIStats.cpp DTIMath.cpp DTIPathwaySelection.cpp \
-	DTIPathwayAssignment.cpp \
-
-
+OUTPUT_DIR = .
+CFLAGS += -O5 $(RAPID_INCLUDE_PATH) -I../nifti -I. $(SYS_CXXFLAGS)
+SRCS =  DTITractParamsFile.cpp  DTIVolumeIO.cpp DTIFilterPathwayScalar.cpp DTIFilterAlgorithm.cpp\
+	DTIRandomSeedGenerator.cpp DTIRandomSeedGeneratorMask.cpp \
+	DTIPathwayInterface.cpp DTIPathway.cpp DTIPathwayFactory.cpp \
+	DTIPathwayDatabase.cpp DTIPathwayIO.cpp DTIStats.cpp DTIMath.cpp dcdf.cpp \
+	DTITrackingData.cpp DTIFilterTree.cpp FunctionNodes.cpp FunctionParser.cpp \
+	DTIFilterROI.cpp DTIFilter.cpp DTIPathwaySelection.cpp ROIManager.cpp SubjectData.cpp\
+	DTIPathwayIntersectionVolume.cpp ui_utils.cpp PathwayGroup.cpp PDBHelper.cpp \
+	DTIPathDistanceMatrix.cpp DTIQueryProcessor.cpp Wm4/Wm4BSplineFitBasis.cpp Wm4/Wm4BSplineCurveFit.cpp
 
 OBJS = $(SRCS:%.cpp=%.o) 
-
-TARGET = $(OUTPUT_DIR)/libdtiUtil.a
+TARGET = $(OUTPUT_DIR)/libutil.a
 
 default: $(TARGET)
 
 $(TARGET) : ${OBJS}
-	${RM} $@
-	${AR} ${OBJS}
+	/bin/rm -f $@
+	${AR} $@ ${OBJS}
 
 .cpp.o: $*.cpp Makefile
-	$(CC) $(CFLAGS) -c $*.cpp -o $*.o
+	$(CPP) $(CFLAGS) -c $*.cpp -o $*.o
 
 clean:
 	rm -rf $(TARGET)

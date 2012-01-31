@@ -18,7 +18,7 @@ University. All rights reserved. **/
 #endif
 
 int DTIFilterTree::containsPrimes() const {
-  for (int i = 0; i < strlen (functionString); i++) {
+  for (int i = 0; i < (int)strlen (functionString); i++) {
     if (functionString[i] == '\'') {
     return TRUE;
     }
@@ -28,7 +28,7 @@ return FALSE;
 
 int DTIFilterTree::containsPrime(char fname) const {
 char curname = ' ';
-  for (int i = 0; i < strlen (functionString); i++) {
+  for (int i = 0; i < (int)strlen (functionString); i++) {
     if (functionString[i] != '\'' && functionString[i] != ' ')
       curname = functionString[i];
     if (functionString[i] == '\'' && curname == fname) {
@@ -52,7 +52,7 @@ istream &operator>> (istream &theStream, DTIFilterTree &theClass) {
   char c;
   theStream >> c;
   theStream.getline(theClass.functionString,255);
-  for (int i = 0; i < strlen (theClass.functionString); i++) {
+  for (int i = 0; i < (int)strlen (theClass.functionString); i++) {
     if (theClass.functionString[i] == 13) theClass.functionString[i] = 0; 
   }
   theClass.chooseVar ("z");
@@ -72,15 +72,9 @@ DTIFilterTree::DTIFilterTree()
   numFunctionsAttachedTo = 0;
   //constant_manager = constantManager;
   roi_manager = NULL;
-#ifdef _MSC_VER
-  strcpy_s(derivOf, "");
-  strcpy_s(functionString, "");
-#else
   strcpy (derivOf, "");
-  strcpy (functionString, "");
-#endif
   function_OK = FALSE;
-  
+  strcpy (functionString, "");
   // Set up link to constants, attachedTO list..
   FUNCTION_CHANGED = TRUE;
   //  for (int i = 0; i < MAX_NUM_ATTACHED; i++) {
@@ -159,11 +153,8 @@ void
 DTIFilterTree::chooseVar(const char *varName)
 {
   assert (varName);
-#ifdef _MSC_VER
-  strcpy_s(var_name, varName);
-#else
   strcpy (var_name, varName);
-#endif
+
 }
 
 
@@ -205,11 +196,7 @@ int
 DTIFilterTree::setFunc(const char *function)
 {
   numFunctionsAttachedTo = 0;
-#ifdef _MSC_VER
-  strcpy_s(derivOf,"");
-#else
   strcpy (derivOf, "");
-#endif
   // Remove all attachments..
 
   assert (roi_manager != NULL);
@@ -221,11 +208,7 @@ DTIFilterTree::setFunc(const char *function)
   /*if (returnVal) { theFunction = parser->getHead();
                    strcpy (functionString, function);
   }*/ /* removed 3/1/99 */
-#ifdef _MSC_VER
-  strcpy_s(functionString, function);
-#else
   strcpy (functionString, function);
-#endif
   //  cerr << "setting function string to " << function << endl;
   //  cerr << "(this = " << (int) this << ")" << endl;
   if (!function_OK) {
@@ -325,11 +308,7 @@ DTIFilterTree::copy()
   newFunc->chooseVar (var_name);
   newFunc->FUNCTION_CHANGED = TRUE;
   newFunc->function_OK = function_OK;
-#ifdef _MSC_VER
-  strcpy_s(newFunc->functionString, functionString);
-#else
   strcpy (newFunc->functionString, functionString);
-#endif
   if (function_OK) 
     newFunc->setFunction (copy (newFunc));
   return newFunc;

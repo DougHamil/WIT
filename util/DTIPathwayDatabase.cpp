@@ -11,12 +11,11 @@ University. All rights reserved. **/
 #include "DTIPathway.h"
 #include "DTIPathwayStatisticHeader.h"
 #include "ComputeListener.h"
-#include "DTIVolumeInterface.h"
-#include "ScalarVolumeInterface.h"
+//#include "DTIVolumeInterface.h"
+//#include "ScalarVolumeInterface.h"
 #include "DTIStats.h"
 #include <iostream>
 #include "DTIPathwayAlgorithmHeader.h"
-#include <string.h>
 
 using namespace std;
 
@@ -31,8 +30,7 @@ DTIPathwayDatabase::DTIPathwayDatabase()
 {
   _recompute_min_needed = true;
   _recompute_max_needed = true;
-  _cached_min_values = NULL;
-  _cached_max_values = NULL;
+  _mm_scale[0]=_mm_scale[1]=_mm_scale[2]=-1;
 }
 
 
@@ -44,22 +42,13 @@ DTIPathwayDatabase::DTIPathwayDatabase()
 
 DTIPathwayDatabase::~DTIPathwayDatabase()
 {
-  for (int i = 0; i < getNumFibers(); i++) {
-    DTIPathway *pathway = getPathway(i);
-    delete pathway;
-  }
+  free_vector<DTIPathway> (_fiber_pathways);
+  free_vector<DTIPathwayStatisticHeader>( _pathway_statistic_headers);
+  free_vector<DTIPathwayAlgorithmHeader>( _pathway_algorithm_headers);
+  free_vector< DTIPathwayStatisticThreshold>( _stats_threshold);
+
 }
 
-void DTIPathwayDatabase::getVoxelSize(double vox_size[3])
-{
-  for(int i = 0; i < 3; i++)
-    vox_size[i] = voxelSize[i];
-}
-void DTIPathwayDatabase::setVoxelSize(double vox_size[3])
-{
-  for(int i = 0; i < 3; i++)
-    voxelSize[i] = vox_size[i];
-}
 
 /*************************************************************************
  * Function Name: DTIPathwayDatabase::addPathway
@@ -70,6 +59,7 @@ void DTIPathwayDatabase::setVoxelSize(double vox_size[3])
 void
 DTIPathwayDatabase::addPathway(DTIPathway *pathway)
 {
+  _recompute_min_needed=_recompute_max_needed=true;
   _fiber_pathways.push_back (pathway);
 }
 
@@ -84,12 +74,33 @@ DTIPathwayDatabase::removePathway(DTIPathway *pathway)
 {
   for (std::vector<DTIPathway *>::iterator iter = _fiber_pathways.begin(); iter !=  _fiber_pathways.end(); iter++) {
     if (*iter == pathway) {
+		_recompute_min_needed=_recompute_max_needed=true;
       _fiber_pathways.erase (iter);
       return;
     }
   }
-    
 }
+
+/*************************************************************************
+ * Function Name: DTIPathwayDatabase::removeAllPathways
+ * Parameters: 
+ * Returns: void
+ * Effects: 
+ *************************************************************************/
+void
+DTIPathwayDatabase::removeAllPathways( )
+{
+  for (std::vector<DTIPathway *>::iterator iter = _fiber_pathways.begin(); iter !=  _fiber_pathways.end(); iter++)
+    delete *iter;
+  _fiber_pathways.clear();
+}
+
+void
+DTIPathwayDatabase::clearAllPathways( )
+{
+  _fiber_pathways.clear();
+}
+
 
 
 /*************************************************************************
@@ -199,8 +210,14 @@ DTIPathwayDatabase::getNumPathStatistics(StatConstraint constraint)
   return count;
 }
 
+int DTIPathwayDatabase::getStatisticIndex( std::string statistic_name)
+{
+	for (int i = 0; i < (int)_pathway_statistic_headers.size(); i++) 
+		if( ! strncmp(_pathway_statistic_headers[i]->_aggregate_name, statistic_name.c_str(), statistic_name.size() ) )
+			return i;
 
-
+	return -1;
+}
 
 /***********************************************************************
  *  Method: DTIPathwayDatabase::computeStatIndex
@@ -240,7 +257,11 @@ DTIPathwayDatabase::getPathStatisticHeader(int id)
   return _pathway_statistic_headers[id];
 }
 
-
+DTIPathwayStatisticThreshold *
+DTIPathwayDatabase::getPathStatistic(int id)
+{
+  return _stats_threshold[id];
+}
 /***********************************************************************
  *  Method: DTIPathwayDatabase::getNumPointStatistics
  *  Params: 
@@ -273,17 +294,8 @@ DTIPathwayDatabase::getNumPointStatistics(StatConstraint constraint)
 const double *
 DTIPathwayDatabase::getMinValues()
 {
-  if (_recompute_min_needed) {
-    delete[] _cached_min_values;
-    _cached_min_values = new double[_pathway_statistic_headers.size()];
-    //    std::cerr << "getMinValues: recomputing!" << std::endl;
-    for (int i = 0; i < _pathway_statistic_headers.size(); i++) {
-      _cached_min_values[i] = computeMinValue (i);
-      //      std::cerr << "min value for " << i << " is: " << _cached_min_values[i] << std::endl;
-    }
-  }
-  _recompute_min_needed = false;
-  return _cached_min_values;
+ 	assert(0);//This functionality is disabled, please use getPathStatistic
+ return 0;//_cached_min_values;
 }
 
 
@@ -296,15 +308,8 @@ DTIPathwayDatabase::getMinValues()
 const double *
 DTIPathwayDatabase::getMaxValues()
 {
-  if (_recompute_max_needed) {
-    delete[] _cached_max_values;
-    _cached_max_values = new double[_pathway_statistic_headers.size()];
-    for (int i = 0; i < _pathway_statistic_headers.size(); i++) {
-      _cached_max_values[i] = computeMaxValue (i);
-    }
-  }
-  _recompute_max_needed = false;
-  return _cached_max_values;
+	assert(0);//This functionality is disabled, please use getPathStatistic
+  return 0;//_cached_max_values;
 }
 
 
@@ -320,44 +325,6 @@ DTIPathwayDatabase::clearStatisticHeaders()
   _pathway_statistic_headers.clear();
 }
 
-
-/***********************************************************************
- *  Method: DTIPathwayDatabase::computeAllStats
- *  Params: 
- * Returns: void
- * Effects: 
- ***********************************************************************/
-void
-DTIPathwayDatabase::computeAllStats(DTIVolumeInterface *tensors, ScalarVolumeInterface *faVol, ComputeListener *listener)
-{
-  int i = 0;
-  int statCount = 0;
-
-  setupStandardStatisticHeaders();
-
-  // compute all statistics (pointwise and aggregate)
-  for (i = 0; i < this->getNumFibers(); i++) {
-    //cerr << "Initializing path statistics for: "<< i << endl;
-    DTIPathway *path = this->getPathway(i);
-    path->initializePathStatistics((int) NUM_STAT_IDS, getPathStatisticHeaders(), true);
-  }
-  //cerr << "Done initializing.\n";
-
-  for (i = 0; i < this->getNumFibers(); i++) {
-    if ( (this->getNumFibers() >= 100) && (i % (this->getNumFibers()/100) == 0) ) {
-      if (listener) listener->progressUpdate ((double) i / this->getNumFibers(), "Computing path stats...", false);
-    }
-    DTIPathway *path = this->getPathway(i);
-    //cerr << "Length Calc\n";
-    DTIStats::computeLength(path, STAT_ID_LENGTH);
-    //cerr << "FA Calc\n";
-    DTIStats::computeFA (path, STAT_ID_FA, (ScalarVolume *) faVol);
-    //cerr << "Curvature Calc\n";
-    DTIStats::computeCurvature(path, STAT_ID_CURVATURE);
-  }
-}
-
-
 /***********************************************************************
  *  Method: DTIPathwayDatabase::getNumAlgorithms
  *  Params: 
@@ -368,68 +335,6 @@ int
 DTIPathwayDatabase::getNumAlgorithms()
 {
   return _pathway_algorithm_headers.size();
-}
-
-
-/***********************************************************************
- *  Method: DTIPathwayDatabase::setupStandardStatisticHeaders
- *  Params: 
- * Returns: void
- * Effects: 
- ***********************************************************************/
-void
-DTIPathwayDatabase::setupStandardStatisticHeaders()
-{
-  clearStatisticHeaders();
-
-  DTIPathwayStatisticHeader *header;
-
-  header = new DTIPathwayStatisticHeader;
-  header->_is_computed_per_point = false;
-  header->_is_luminance_encoding = true;
-  header->_is_viewable_stat = true;
-#ifdef _MSC_VER
-  strcpy_s(header->_aggregate_name, "Length");
-  strcpy_s(header->_local_name, "Distance along path");
-#else
-  strcpy (header->_aggregate_name, "Length");
-  strcpy (header->_local_name, "Distance along path");
-#endif
-  header->_unique_id = (int) STAT_ID_LENGTH;
-
-  this->addStatisticHeader(header);
-
-  
-  header = new DTIPathwayStatisticHeader;
-  header->_is_computed_per_point = false;
-  header->_is_luminance_encoding = true;
-  header->_is_viewable_stat = true;
-#ifdef _MSC_VER
-  strcpy_s(header->_aggregate_name, "Median FA");
-  strcpy_s(header->_local_name, "Local FA");
-#else
-  strcpy (header->_aggregate_name, "Median FA");
-  strcpy (header->_local_name, "Local FA");
-#endif
-  header->_unique_id = (int) STAT_ID_FA;
-  
-  this->addStatisticHeader(header);
-
-  header = new DTIPathwayStatisticHeader;
-  header->_is_computed_per_point = false;
-  header->_is_luminance_encoding = true;
-  header->_is_viewable_stat = true;
-#ifdef _MSC_VER
-  strcpy_s(header->_aggregate_name, "Mean Curvature");
-  strcpy_s(header->_local_name, "Local Curvature");
-#else
-  strcpy (header->_aggregate_name, "Mean Curvature");
-  strcpy (header->_local_name, "Local Curvature");
-#endif
-  header->_unique_id = (int) STAT_ID_CURVATURE;
-
-  this->addStatisticHeader(header);
-
 }
 
 
@@ -538,13 +443,106 @@ DTIPathwayDatabase::getBoundingBox(double xRange[2], double yRange[2], double zR
 double
 DTIPathwayDatabase::getMinValue(PathwayProperty property)
 {
-  const double *minVals = getMinValues();
-  if (property < _pathway_statistic_headers.size() ) {
-    return minVals[property];
-  }
-  else {
-    return 0;
-  }
+	if (_recompute_min_needed) {
+		//    std::cerr << "getMinValues: recomputing!" << std::endl;
+		for (int i = 0; i < (int)_pathway_statistic_headers.size(); i++) {
+			_stats_threshold[i]->_min = computeMinValue(i);
+			//      std::cerr << "min value for " << i << " is: " << _cached_min_values[i] << std::endl;
+		}
+	}
+	_recompute_min_needed = false;
+
+	if (property < (int)_pathway_statistic_headers.size() ) 
+		return _stats_threshold[property]->_min ;
+	return 0;
+}
+
+/*************************************************************************
+ * Function Name: DTIPathwayDatabase::setVoxelSize
+ * Parameters: const double mmScale[3]
+ * Returns: void
+ * Effects: 
+ *************************************************************************/
+void
+DTIPathwayDatabase::setVoxelSize(const double mmScale[3])
+{
+	_mm_scale[0] = mmScale[0];
+	_mm_scale[1] = mmScale[1];
+	_mm_scale[2] = mmScale[2];
+}
+
+
+/*************************************************************************
+ * Function Name: DTIPathwayDatabase::getVoxelSize
+ * Parameters: double mmScale[3]
+ * Returns: void
+ * Effects: 
+ *************************************************************************/
+void
+DTIPathwayDatabase::getVoxelSize(double mmScale[3])
+{
+	mmScale[0] = _mm_scale[0];
+	mmScale[1] = _mm_scale[1];
+	mmScale[2] = _mm_scale[2];
+}
+
+/*************************************************************************
+ * Function Name: DTIPathwayDatabase::setVoxelSize
+ * Parameters: const float mmScale[3]
+ * Returns: void
+ * Effects: 
+ *************************************************************************/
+void
+DTIPathwayDatabase::setVoxelSize(const float mmScale[3])
+{
+	_mm_scale[0] = mmScale[0];
+	_mm_scale[1] = mmScale[1];
+	_mm_scale[2] = mmScale[2];
+}
+
+
+/*************************************************************************
+ * Function Name: DTIPathwayDatabase::getVoxelSize
+ * Parameters: float mmScale[3]
+ * Returns: void
+ * Effects: 
+ *************************************************************************/
+void
+DTIPathwayDatabase::getVoxelSize(float mmScale[3])
+{
+	mmScale[0] = _mm_scale[0];
+	mmScale[1] = _mm_scale[1];
+	mmScale[2] = _mm_scale[2];
+}
+
+
+/*************************************************************************
+ * Function Name: DTIPathwayDatabase::setSceneDimension
+ * Parameters: const double mmScale[3]
+ * Returns: void
+ * Effects: 
+ *************************************************************************/
+void
+DTIPathwayDatabase::setSceneDimension(const unsigned int sceneDim[3])
+{
+  _scene_dim[0] = sceneDim[0];
+  _scene_dim[1] = sceneDim[1];
+  _scene_dim[2] = sceneDim[2];
+}
+
+
+/*************************************************************************
+ * Function Name: DTIPathwayDatabase::getSceneDimension
+ * Parameters: double mmScale[3]
+ * Returns: void
+ * Effects: 
+ *************************************************************************/
+void
+DTIPathwayDatabase::getSceneDimension(unsigned int sceneDim[3])
+{
+  sceneDim[0] = _scene_dim[0];
+  sceneDim[1] = _scene_dim[1];
+  sceneDim[2] = _scene_dim[2];
 }
 
 
@@ -557,13 +555,98 @@ DTIPathwayDatabase::getMinValue(PathwayProperty property)
 double
 DTIPathwayDatabase::getMaxValue(PathwayProperty property)
 {
-  const double *maxVals = getMaxValues();
-  if (property < _pathway_statistic_headers.size() ) {
-    return maxVals[property];
-  }
-  else {
-    return 0;
-  }
+	if (_recompute_max_needed) 
+		for (int i = 0; i < (int)_pathway_statistic_headers.size(); i++)
+			_stats_threshold[i]->_max = computeMaxValue (i);
+
+	_recompute_max_needed = false;
+
+	if (property < (int)_pathway_statistic_headers.size() )
+		return _stats_threshold[property]->_max;
+	return 0;
 }
 
 
+
+/***********************************************************************
+ *  Method: DTIPathwayDatabase::computeAllStats
+ *  Params: 
+ * Returns: void
+ * Effects: 
+ ***********************************************************************/
+// void
+// DTIPathwayDatabase::computeAllStats(DTIVolumeInterface *tensors, ScalarVolumeInterface *faVol, ComputeListener *listener)
+// {
+//   int i = 0;
+//   int statCount = 0;
+
+//   setupStandardStatisticHeaders();
+
+//   // compute all statistics (pointwise and aggregate)
+//   for (i = 0; i < this->getNumFibers(); i++) {
+//     //cerr << "Initializing path statistics for: "<< i << endl;
+//     DTIPathway *path = this->getPathway(i);
+//     path->initializePathStatistics((int) NUM_STAT_IDS, getPathStatisticHeaders(), true);
+//   }
+//   //cerr << "Done initializing.\n";
+
+//   for (i = 0; i < this->getNumFibers(); i++) {
+//     if ( (this->getNumFibers() >= 100) && (i % (this->getNumFibers()/100) == 0) ) {
+//       if (listener) listener->progressUpdate ((double) i / this->getNumFibers(), "Computing path stats...", false);
+//     }
+//     DTIPathway *path = this->getPathway(i);
+//     //cerr << "Length Calc\n";
+//     DTIStats::computeLength(path, STAT_ID_LENGTH);
+//     //cerr << "FA Calc\n";
+//     DTIStats::computeFA (path, STAT_ID_FA, (ScalarVolume *) faVol);
+//     //cerr << "Curvature Calc\n";
+//     DTIStats::computeCurvature(path, STAT_ID_CURVATURE);
+//   }
+// }
+
+/***********************************************************************
+ *  Method: DTIPathwayDatabase::setupStandardStatisticHeaders
+ *  Params: 
+ * Returns: void
+ * Effects: 
+ ***********************************************************************/
+// void
+// DTIPathwayDatabase::setupStandardStatisticHeaders()
+// {
+//   clearStatisticHeaders();
+
+//   DTIPathwayStatisticHeader *header;
+
+//   header = new DTIPathwayStatisticHeader;
+//   header->_is_computed_per_point = false;
+//   header->_is_luminance_encoding = true;
+//   header->_is_viewable_stat = true;
+//   strcpy (header->_aggregate_name, "Length");
+//   strcpy (header->_local_name, "Distance along path");
+//   header->_unique_id = (int) STAT_ID_LENGTH;
+
+//   this->addStatisticHeader(header);
+
+  
+//   header = new DTIPathwayStatisticHeader;
+//   header->_is_computed_per_point = false;
+//   header->_is_luminance_encoding = true;
+//   header->_is_viewable_stat = true;
+//   strcpy (header->_aggregate_name, "Median FA");
+//   strcpy (header->_local_name, "Local FA");
+//   header->_unique_id = (int) STAT_ID_FA;
+
+  
+//   this->addStatisticHeader(header);
+
+//   header = new DTIPathwayStatisticHeader;
+//   header->_is_computed_per_point = false;
+//   header->_is_luminance_encoding = true;
+//   header->_is_viewable_stat = true;
+//   strcpy (header->_aggregate_name, "Mean Curvature");
+//   strcpy (header->_local_name, "Local Curvature");
+//   header->_unique_id = (int) STAT_ID_CURVATURE;
+
+//   this->addStatisticHeader(header);
+
+// }

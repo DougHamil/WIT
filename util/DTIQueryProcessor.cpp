@@ -4,10 +4,10 @@
 #include "DTIFilterPathwayScalar.h"
 #include "DTIFilterAlgorithm.h"
 
-DTIQueryProcessor::DTIQueryProcessor (VOIManager *mgr)
+DTIQueryProcessor::DTIQueryProcessor (ROIManager *mgr)
 {
   _roi_filters = new DTIFilterTree();
-  _roi_filters->setVOIManager (mgr);
+  _roi_filters->setROIManager (mgr);
   _algo_filter = new DTIFilterAlgorithm();
   _algo_filter->setFilter(DTI_PATHWAY_ALGORITHM_ANY);
 }
@@ -15,21 +15,25 @@ DTIQueryProcessor::DTIQueryProcessor (VOIManager *mgr)
 DTIQueryProcessor::~DTIQueryProcessor ()
 {
   delete _roi_filters;
+  delete _algo_filter;
 }
 
 bool
-DTIQueryProcessor::doesPathwayMatch (DTIPathway *pathway)
+DTIQueryProcessor::doesPathwayMatch (DTIPathway *pathway) 
 {
   bool passesProperties = doesPathwayMatchProperties(pathway);
   if (passesProperties) {
-    bool result = this->_roi_filters->doesPathwayMatch(pathway);
+    //    bool result = this->_roi_filters->doesPathwayMatch(pathway);
+    bool result = true;
+    // dakers 8/4/11 - temporarily disabling ROI filters since their
+    // behavior is confusing in the refine selection window.
     if (result) return true;
   }
   return false;
 }
   
 bool
-DTIQueryProcessor::setVOIFilter (char *str) 
+DTIQueryProcessor::setROIFilter (const char *str) 
 {
   // return false if function is invalid...
   int result = _roi_filters->setFunc (str);
@@ -42,13 +46,13 @@ DTIQueryProcessor::setVOIFilter (char *str)
 }
 
 const char *
-DTIQueryProcessor::getVOIFilter () 
+DTIQueryProcessor::getROIFilter () 
 {
   return _roi_filters->getFunctionString();
 }
 
 bool
-DTIQueryProcessor::doesPathwayMatchProperties(DTIPathway *pathway)
+DTIQueryProcessor::doesPathwayMatchProperties (DTIPathway *pathway)
 {
   for (std::vector<DTIFilterPathwayScalar *>::iterator iter = _pathway_property_filters.begin(); iter != _pathway_property_filters.end(); iter++) {
     DTIFilterPathwayScalar *filter = *iter;
@@ -60,10 +64,6 @@ DTIQueryProcessor::doesPathwayMatchProperties(DTIPathway *pathway)
   return true;
 }
  
-void DTIQueryProcessor::clearScalarFilters()
-{
-  _pathway_property_filters.clear();
-}
 void 
 DTIQueryProcessor::appendScalarFilter (DTIFilterPathwayScalar *filter)
 {
@@ -71,11 +71,11 @@ DTIQueryProcessor::appendScalarFilter (DTIFilterPathwayScalar *filter)
 }
 
 void 
-DTIQueryProcessor::resetVOIFilter (VOIManager *mgr)
+DTIQueryProcessor::resetROIFilter (ROIManager *mgr)
 {
   delete _roi_filters;
   _roi_filters = new DTIFilterTree ();
-  _roi_filters->setVOIManager(mgr);
+  _roi_filters->setROIManager(mgr);
 }
 
 void 

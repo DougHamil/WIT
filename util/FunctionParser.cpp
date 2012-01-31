@@ -9,7 +9,7 @@ University. All rights reserved. **/
  *************************************************************************/
 
 #include "FunctionParser.h"
-#include "VOIManager.h"
+#include "ROIManager.h"
 #include <string.h>
 #include "tokens.h"
 #include <stdio.h>
@@ -30,7 +30,7 @@ University. All rights reserved. **/
 int getCommaDelimitedText(const char *input, char *result, int startPos) {
   int index=0;
   int i=startPos;
-  for (i = startPos; i < strlen (input); i++) {
+  for (i = startPos; i < (int)strlen (input); i++) {
     if (input[i] != ',') {
     result[index] = input[i];
     }
@@ -52,12 +52,12 @@ int getCommaDelimitedText(const char *input, char *result, int startPos) {
  * Effects:
  *************************************************************************/
 
-FunctionParser::FunctionParser(DTIFilterTree *function, VOIManager *roiManager)
+FunctionParser::FunctionParser(DTIFilterTree *function, ROIManager *roiManager)
 {
   theFunction = function;
   function_OK = TRUE;
   roi_manager = roiManager;
-  //roi_manager->getVOIFilter ("");
+  //roi_manager->getROIFilter ("");
 }
 
 
@@ -637,11 +637,11 @@ FunctionParser::OperandDeriv1()
       Match(TOKEN_STRING);
       //if (!strcmp (nextTokenString, "f")) exit (0);
       
-	  DTIFilterVOI *filter;
+	  DTIFilterROI *filter;
 
-	  filter = roi_manager->getVOIFilter (tokenString);
+	  filter = roi_manager->getROIFilter (tokenString);
 	  if (filter) {
-		  return new NodeFilterVOI(theFunction, filter);
+		  return new NodeFilterROI(theFunction, filter);
 	  }
 	  else {
 		  function_OK = false;

@@ -1,30 +1,19 @@
 # Makefile for nifti (library for handling nifti IO)
 #
-
+#
 include ../Makefile.definitions
 
-CC = gcc
-
-AR = ar csr $@
-RM = rm -f
-
-OUTPUT_DIR = ../lib
-
-ZLIB_INC	=	-I../zlib
-
-CFLAGS = $(SYS_INCLUDE_PATHS) -O -DHAVE_ZLIB -I. $(ZLIB_INCLUDE_PATH)
-
+OUTPUT_DIR = .
+CFLAGS = -O5 -DHAVE_ZLIB -I. $(ZLIB_INCLUDE_PATH) $(SYS_CXXFLAGS) $(CFLAGS_ALL)
 SRCS = nifti1_io.c znzlib.c fslio.c extended_fslio.c
-
 OBJS = $(SRCS:%.c=%.o) 
-
 TARGET = $(OUTPUT_DIR)/libnifti.a
 
 default: $(TARGET)
 
 $(TARGET) : ${OBJS}
 	${RM} $@
-	${AR} ${OBJS}
+	${AR} $@ ${OBJS}
 
 .c.o: $*.c Makefile
 	$(CC) $(CFLAGS) -c $*.c -o $*.o

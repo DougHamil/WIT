@@ -7,19 +7,10 @@ University. All rights reserved. **/
 #include "typedefs.h"
 #include "DTIPathwayInterface.h"
 #include <vector>
-
-#ifdef USE_RAPID
-class RAPID_model;
-typedef RAPID_model* collisionModel;
-#else
-#include <ozcollide/aabbtree_poly.h>
-typedef ozcollide::AABBTreePoly* collisionModel;
-#endif
-
-class ScalarVolume;
+#include <opcode/Opcode.h>
 
 class DTIPathway : public DTIPathwayInterface {
-  friend class DTIFilterVOI;
+  friend class DTIFilterROI;
   public:
   friend class DTIPathwayIO;
   DTIPathway(DTIPathwayAlgorithm algo);
@@ -29,30 +20,15 @@ class DTIPathway : public DTIPathwayInterface {
 
   int getClusterIndex () { return _cluster_index; }
   void setClusterIndex (int index) { _cluster_index = index; }
-
-  collisionModel getCollisionModel();
+  Opcode::Model *getCollisionModel();
 
   int getID() {return _unique_id;}
   void setID(int id){_unique_id = id;}
 
-  /*  double getValidity(){return _cached_validity;}
-      void setValidity(double v){_cached_validity = v;}*/
-  /*
-  void setCachedLengthMM(double len);
-  void setCachedMedianFA(double fa);
-  void setCachedMinFA(double fa);
-  void setCachedMaxAngle(double ang);
-  void setCachedMeanCurvature(double curv);
-  */
  private:
-
-  collisionModel generateCollisionModel();
-
   int _cluster_index;
   int _unique_id;
- 
-  collisionModel _coll_model;
-  //  std::vector <DTIVector *> _point_vector;
+  Opcode::Model *_coll_model;  
 };
 
 #endif
