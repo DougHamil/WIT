@@ -8,16 +8,22 @@ University. All rights reserved. **/
 *    DATE: Sun Feb 29  7:54:22 PST 2004
 *************************************************************************/
 #include "DTIFilterROI.h"
-#include <RAPID.H>
-#include <obb.H>
+
+#ifdef USE_RAPID
+#include <RAPID.h>
+#include <obb.h>
+#else
+#include <opcode/Opcode.h>
+#endif
+
 #include <stdexcept>
 #include "DTIPathway.h"
 #include <iostream>
 using namespace std;
 
-DTIFilterROI::DTIFilterROI(ROIType type, PRAPID_model model, Colord col)
+DTIFilterROI::DTIFilterROI(ROIType type, PCollModel model, Colord col)
 {  
-        _type = type;
+    _type = type;
 	_model = model;
 	_color = col;
 	_image_volume = NULL;
@@ -30,8 +36,10 @@ DTIFilterROI::DTIFilterROI(ROIType type, PRAPID_model model, Colord col)
 	}
 	//First compute the center
 	Vector3<double> center, minv, maxv;
+
+#ifdef USE_RAPID
 	for(int i = 0; i < _model->num_tris; i++)
-	{
+	{		
 		center+=Vector3<double>(_model->tris[i].p1);
 		center+=Vector3<double>(_model->tris[i].p2);
 		center+=Vector3<double>(_model->tris[i].p3);
@@ -44,12 +52,30 @@ DTIFilterROI::DTIFilterROI(ROIType type, PRAPID_model model, Colord col)
 	center=  center * ( 1.0 /(3 * _model->num_tris) );
 	_center = center;
 	_size   = maxv - minv;
+#else
+	Opcode::MeshInterface mesh = *_model->GetMeshInterface();
+	for(int i = 0; i < _model->GetMeshInterface()->GetNbTriangles(); i++)
+	{
+		Opcode::VertexPointers vert;
+		mesh.GetTriangle(vert, i);
+		for(int n = 0; n < 3; n++)
+		{
+			Vector3<double> thisVert(vert.Vertex[n]->x, vert.Vertex[n]->y, vert.Vertex[n]->z);
+			center += thisVert;
+			minv = min(thisVert, minv); 
+			maxv = max(thisVert, maxv);
+		}
+	}
+	center=  center * ( 1.0 /(3 *  _model->GetMeshInterface()->GetNbTriangles()) );
+	_center = center;
+	_size   = maxv - minv;
+#endif
 }
 
 //! Need to do scaling manually as RAPID has no support for non-uniform scaling
 void DTIFilterROI::SetScale (const double scale[3])
 {
-
+#ifdef USE_RAPID
 	//Now scale the model around the center
 	for(int i = 0; i < _model->num_tris; i++)
 		for(int j = 0; j < 3; j++)
@@ -61,15 +87,42 @@ void DTIFilterROI::SetScale (const double scale[3])
 
 	//Update the model
 	_model->EndModel();
+#else
+	Opcode::MeshInterface mesh = *_model->GetMeshInterface();
+	IceMaths::Point *verts = (IceMaths::Point*)mesh.GetVerts();
+	//Now scale the model around the center
+	for(int i = 0; i <  mesh.GetNbVertices(); i++)
+	{
+		
+		verts[i].x = _center[0] + scale[0] * (verts[i].x - _center[0]) / _scale[0];
+		verts[i].y = _center[1] + scale[1] * (verts[i].y - _center[1]) / _scale[1];
+		verts[i].z = _center[2] + scale[2] * (verts[i].z - _center[2]) / _scale[2];
+	}
+	//Update the model
+	_model->Refit();
+#endif
 	memcpy(_scale, scale, sizeof(double)*3);
 }
 
 bool DTIFilterROI::matches(DTIPathway *pathway)
 {
-	RAPID_model *pathwayModel = pathway->getRAPIDModel();
+#ifdef USE_RAPID
+	CollModel *pathwayModel = pathway->getCollisionModel();
 	RAPID_Collide (_rotation_matrix, _position, _model.get(),
 		ZERO_ROTATION, ZERO_TRANSLATION, pathwayModel, RAPID_FIRST_CONTACT);
 	return RAPID_num_contacts > 0 ? true:false;
+#else
+	Opcode::Model *pathwayModel = pathway->getCollisionModel();
+	Opcode::AABBTreeCollider TC;
+	TC.SetFirstContact(true);
+	Opcode::BVTCache cache;
+	cache.Model0 = pathway->getCollisionModel();
+	cache.Model1 = this->_model.get();
+
+	TC.Collide(cache);
+
+	return TC.GetContactStatus();
+#endif
 }
 
 void DTIFilterROI::Serialize (std::ostream &s, int version)

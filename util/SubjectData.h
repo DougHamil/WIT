@@ -4,8 +4,8 @@ University. All rights reserved. **/
 #ifndef Q_SUBJECTDATA_H
 #define Q_SUBJECTDATA_H
 
-#include <typedefs.h>
-#include <DTIVolume.h>
+#include "typedefs.h"
+#include "DTIVolume.h"
 #include <memory>
 
 //! Stores the information relating to nifti volume

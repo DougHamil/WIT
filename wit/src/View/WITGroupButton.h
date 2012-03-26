@@ -2,16 +2,16 @@
 #define WIT_GROUP_BUTTONH
 
 #include <QPushButton>
+#include <util/typedefs.h>
 
 class WITGroupButton : public QPushButton
 {
     Q_OBJECT
 public:
-    WITGroupButton(int ID, int r, int g, int b, QWidget *parent = 0);
-    WITGroupButton(QString &ID, int r, int g, int b, QWidget *parent =0);
+	WITGroupButton(int ID, Colord* color);
 protected:
     bool groupVisible;
-    int r, g, b;
+    Colord color;
 signals:
 
 public slots:

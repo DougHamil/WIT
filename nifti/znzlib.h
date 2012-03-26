@@ -98,7 +98,7 @@ char * znzgets(char* str, int size, znzFile file);
 
 int znzputc(int c, znzFile file);
 
-int znzgetc(znzFile file);
+//int znzgetc(znzFile file);
 
 #if !defined(WIN32)
 int znzprintf(znzFile stream, const char *format, ...);

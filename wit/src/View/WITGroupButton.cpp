@@ -2,8 +2,7 @@
 #include <sstream>
 #include <iostream>
 
-WITGroupButton::WITGroupButton(int ID, int r, int g, int b, QWidget *parent) :
-    QPushButton(parent)
+WITGroupButton::WITGroupButton(int ID, Colord *color)
 {
 	std::stringstream out;
     out << ID;
@@ -11,7 +10,6 @@ WITGroupButton::WITGroupButton(int ID, int r, int g, int b, QWidget *parent) :
 
     std::stringstream style;
     style << "QPushButton { padding:2px;min-width:2em;background:rgb(";
-    style << r << ", " << g << ", " << b << ");}";
+    style << color->r*255 << ", " << color->g*255 << ", " << color->b*255 << ");}";
     setStyleSheet(style.str().c_str());
-
 }

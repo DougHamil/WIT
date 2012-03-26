@@ -39,7 +39,7 @@ DTIPathwaySelection DTIPathwaySelection::PruneForGesture(BOOLEAN_OPERATION op, D
 	DTIPathwaySelection sel(numPathways, false);
 
 	bool shouldMatchGroup 	= op != UNION;
-	int  comparisionGroup 	= /*op == SELECT_ALL  ?  0 :*/ assignment->SelectedGroup();
+	int  comparisionGroup 	= assignment->SelectedGroup();
 	bool assignmentsLocked 	= op == UNION  ?  !assignment->Locked() : true;
 
 	for(int i = 0; i < numPathways; i++)

@@ -36,7 +36,7 @@ class DTIFilterROI : public DTIFilter
 {
 public:
 	//! \param model. The RAPID_model corresponding to the ROI. 
-  DTIFilterROI(ROIType type, PRAPID_model model, Colord col = DEFAULT_ROI_COLOR);
+  DTIFilterROI(ROIType type, PCollModel model, Colord col = DEFAULT_ROI_COLOR);
   DTIFilterROI();
   virtual ~DTIFilterROI() {}
 	
@@ -88,7 +88,7 @@ protected:
 	std::string _file_location;
 
 	//! RAPID model used for pathway intersection.
-	PRAPID_model _model;
+	PCollModel _model;
 	//! rotation matrix of the ROI
 	double _rotation_matrix[3][3];
 	//! Position of the ROI

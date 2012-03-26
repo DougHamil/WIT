@@ -7,7 +7,12 @@ University. All rights reserved. **/
 #include "typedefs.h"
 #include "DTIPathwayInterface.h"
 #include <vector>
+
+#ifdef USE_RAPID
+#include <RAPID201/RAPID.h>
+#else
 #include <opcode/Opcode.h>
+#endif
 
 class DTIPathway : public DTIPathwayInterface {
   friend class DTIFilterROI;
@@ -20,7 +25,7 @@ class DTIPathway : public DTIPathwayInterface {
 
   int getClusterIndex () { return _cluster_index; }
   void setClusterIndex (int index) { _cluster_index = index; }
-  Opcode::Model *getCollisionModel();
+  CollModel *getCollisionModel();
 
   int getID() {return _unique_id;}
   void setID(int id){_unique_id = id;}
@@ -28,7 +33,7 @@ class DTIPathway : public DTIPathwayInterface {
  private:
   int _cluster_index;
   int _unique_id;
-  Opcode::Model *_coll_model;  
+  CollModel *_coll_model;  
 };
 
 #endif

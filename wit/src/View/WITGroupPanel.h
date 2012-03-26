@@ -6,6 +6,8 @@
 #include <QSignalMapper>
 #include <vector>
 
+#include <util/typedefs.h>
+
 #include "WITGroupButton.h"
 
 class WITGroupPanelController;
@@ -31,7 +33,7 @@ public:
 
 		@param num the number of pathway groups to create buttons for
 	*/
-	void setNumberOfButtons(int num);
+	void setNumberOfGroups(int num, Colord **);
 
 private slots:
 	
@@ -41,8 +43,9 @@ private slots:
 
 		@param index the index of the pathway group button pressed.
 	*/
-	void onSetActiveGroup(int index){emit setActiveGroup(index);}
+	void onSetActiveGroup(int index){activeIndex = index; emit setActiveGroup(index);}
 
+	void onActiveGroupSet(int index);
 signals:
 
 	/**
@@ -53,6 +56,7 @@ signals:
 	void setActiveGroup(int index);
 
 private:
+	int activeIndex;
 	QHBoxLayout *hbox;
     QButtonGroup *bgroup;
 	std::vector<WITGroupButton*> buttons;

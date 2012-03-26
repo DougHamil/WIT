@@ -43,15 +43,37 @@ DTIPathway::~DTIPathway()
 }
 
 extern int tottris;
-Opcode::Model *DTIPathway::getCollisionModel()
+CollModel *DTIPathway::getCollisionModel()
 {
   double EPS = 0.001;
   if (_coll_model) {
     return _coll_model;
   }
   else {
-    _coll_model = new Opcode::Model;
-
+	  _coll_model = new CollModel;
+#ifdef USE_RAPID
+    _coll_model->BeginModel();
+    int counter = 0;
+    DTIGeometryVector *previous = NULL;
+    for (std::vector<DTIGeometryVector *>::iterator iter = _point_vector.begin();
+	 iter != _point_vector.end();
+	 iter++) {
+      DTIGeometryVector *current = *iter;
+      //std::cerr << "current: " << current << std::endl;
+      if (counter != 0) {
+		tottris+=3;
+		double p1[3] = {(*previous)[0]+EPS, (*previous)[1], (*previous)[2]};
+	
+		double p2[3] = {(*previous)[0]+EPS, (*previous)[1] + EPS, (*previous)[2]};
+		double p3[3] = {(*current)[0], (*current)[1], (*current)[2]};
+		//std::cerr << "pt1: " << p1[0] << ", " << p1[1] << ", " << p3[2] << std::endl;
+		_coll_model->AddTri (p1, p2, p3, counter);
+      }
+      previous = current;
+      counter++;
+    }
+    _coll_model->EndModel();
+#else
 	int numVerts = _point_vector.size();
 	int numTris = _point_vector.size() - 1;
 	IceMaths::Point *verts = new IceMaths::Point[numVerts];
@@ -72,12 +94,19 @@ Opcode::Model *DTIPathway::getCollisionModel()
 	}
 
 	Opcode::OPCODECREATE OPCC;
-
+	OPCC.mIMesh = new Opcode::MeshInterface();
+	//OPCC.mQuantized = false;
+	//OPCC.mKeepOriginal = false;
+	OPCC.mNoLeaf =false;
 	OPCC.mIMesh->SetNbTriangles(numTris);
 	OPCC.mIMesh->SetNbVertices(numVerts);
 	OPCC.mIMesh->SetPointers(tris, verts);
-	
+
 	_coll_model->Build(OPCC);
+
+	//delete [] verts;
+	//delete [] tris;
+#endif
 
     return _coll_model;
   }

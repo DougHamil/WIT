@@ -11,6 +11,12 @@ University. All rights reserved. **/
 #include "io_utils.h"
 #include "typedefs_property.h"
 
+#ifdef USE_RAPID
+#include <RAPID201/RAPID.h>
+#else
+#include <opcode/Opcode.h>
+#endif
+
 
 #define foreach(type , element, list) 	\
 for (type::iterator element = (list).begin(), e = (list).end();  element != e;  ++element ) 
@@ -185,10 +191,15 @@ template <class T> void free_vector(std::vector<T*> &v)
 #define TRY_WITH_CONTINUE(EXPR, MSG) { if(!EXPR){std::cerr<<__FILE__<<":"<<__LINE__<<" "<<MSG<<std::endl; continue;} }
 #define TRY_WITH_RETURN_VAL(EXPR, MSG, VAL) { if(!EXPR){std::cerr<<__FILE__<<":"<<__LINE__<<" "<<MSG<<std::endl; return VAL;} }
 
-class RAPID_model;
 class DTIFilterROI;
 class DTIPathwayDatabase;
 class DTIPathDistanceMatrix;
+
+#ifdef USE_RAPID
+	typedef RAPID_model CollModel;
+#else
+	typedef Opcode::Model CollModel;
+#endif
 /*	
  shared_ptr is not a part of main STL library in linux
  hence we need two different implementation.
@@ -200,7 +211,7 @@ class DTIPathDistanceMatrix;
 
 #ifdef _WIN32
 #	include <memory>
-	typedef std::shared_ptr<RAPID_model				> PRAPID_model;
+	typedef std::shared_ptr<CollModel				> PCollModel;
 	typedef std::shared_ptr<DTIFilterROI			> PDTIFilterROI;
 	typedef std::shared_ptr<DTIPathwayDatabase		> PDTIPathwayDatabase;
 	typedef std::shared_ptr<DTIPathDistanceMatrix	> PDTIPathDistanceMatrix;
@@ -213,6 +224,7 @@ class DTIPathDistanceMatrix;
 	typedef std::tr1::shared_ptr<DTIFilterROI			> PDTIFilterROI;
 	typedef std::tr1::shared_ptr<DTIPathwayDatabase		> PDTIPathwayDatabase;
 	typedef std::tr1::shared_ptr<DTIPathDistanceMatrix	> PDTIPathDistanceMatrix;
+	typedef std::tr1::shared_ptr<Opcode::Model			> POPCODE_model;
 #	define _access access
 #	define _getcwd getcwd
 #	define _chdir  chdir

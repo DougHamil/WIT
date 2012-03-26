@@ -1,29 +1,27 @@
 #include "WITGroupPanelController.h"
 #include "../WITApplication.h"
 
+#include <util/PathwayGroup.h>
+
 // TEMP
 #include <iostream>
 
 WITGroupPanelController::WITGroupPanelController(WITGroupPanel *panel)
 {
 	this->panel = panel;
+	this->pathwayController = WITApplication::getInstance().getPathwayController();
 
-	// Connect us to the application's GroupCollection
-	connect(WITApplication::getInstance().getGroups(), SIGNAL(groupAdded()), this, SLOT(onGroupAdded()));
-	connect(WITApplication::getInstance().getGroups(), SIGNAL(activeGroupSet(int)), this, SLOT(onActiveGroupSet(int)));
+	PathwayGroupArray *groupArray = pathwayController->getGroupArray();
 
-	// Connect our panel to the GroupCollection
-	connect(panel, SIGNAL(setActiveGroup(int)), WITApplication::getInstance().getGroups(), SLOT(setActiveGroup(int)));
-}
+	Colord **colors = new Colord*[groupArray->size()];
 
-void WITGroupPanelController::onGroupAdded()
-{
-	this->panel->setNumberOfButtons(WITApplication::getInstance().getGroups()->getGroups().size());
-}
+	for(int i = 0; i < groupArray->size(); i++)
+	{
+		colors[i] = &groupArray->at(i).Color();
+	}
 
-void WITGroupPanelController::onActiveGroupSet(int id)
-{
+	this->panel->setNumberOfGroups(groupArray->size(), colors);
 
-	qDebug("Changed id to: %i",id);
-	//std::cout << "Changed active group to: " << id << std::endl;
+	connect(this->panel, SIGNAL(setActiveGroup(int)), this->pathwayController, SLOT(setActiveGroup(int)));
+	connect(this->pathwayController, SIGNAL(activeGroupSet(int)), this->panel, SLOT(onActiveGroupSet(int)));
 }

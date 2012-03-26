@@ -2,6 +2,29 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WIT", "WIT.vcxproj", "{FCE9CA19-BA11-4F72-95CD-10630899A085}"
+	ProjectSection(ProjectDependencies) = postProject
+		{EC5C2B9B-5375-443E-B168-8A44ECA3053B} = {EC5C2B9B-5375-443E-B168-8A44ECA3053B}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util", "..\projects\msvc\util\util.vcxproj", "{EC5C2B9B-5375-443E-B168-8A44ECA3053B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6A6BC8A5-A9F7-4E54-B15F-3FA4D1FE3C13} = {6A6BC8A5-A9F7-4E54-B15F-3FA4D1FE3C13}
+		{9D6559BD-F5B8-4654-B3BA-263B721C4FD4} = {9D6559BD-F5B8-4654-B3BA-263B721C4FD4}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Opcode", "..\projects\msvc\opcode\Opcode.vcxproj", "{9D6559BD-F5B8-4654-B3BA-263B721C4FD4}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nifti", "..\projects\msvc\nifti\nifti.vcxproj", "{6A6BC8A5-A9F7-4E54-B15F-3FA4D1FE3C13}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A8A56442-EF6F-4A24-831B-A5000F3B63FF} = {A8A56442-EF6F-4A24-831B-A5000F3B63FF}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zlib", "..\projects\msvc\zlib\zlib.vcxproj", "{A8A56442-EF6F-4A24-831B-A5000F3B63FF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D02E001A-3819-4B25-ABEA-A863271C3543}"
+	ProjectSection(SolutionItems) = preProject
+		Performance1.psess = Performance1.psess
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,6 +36,22 @@ Global
 		{FCE9CA19-BA11-4F72-95CD-10630899A085}.Debug|Win32.Build.0 = Debug|Win32
 		{FCE9CA19-BA11-4F72-95CD-10630899A085}.Release|Win32.ActiveCfg = Release|Win32
 		{FCE9CA19-BA11-4F72-95CD-10630899A085}.Release|Win32.Build.0 = Release|Win32
+		{EC5C2B9B-5375-443E-B168-8A44ECA3053B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{EC5C2B9B-5375-443E-B168-8A44ECA3053B}.Debug|Win32.Build.0 = Debug|Win32
+		{EC5C2B9B-5375-443E-B168-8A44ECA3053B}.Release|Win32.ActiveCfg = Release|Win32
+		{EC5C2B9B-5375-443E-B168-8A44ECA3053B}.Release|Win32.Build.0 = Release|Win32
+		{9D6559BD-F5B8-4654-B3BA-263B721C4FD4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9D6559BD-F5B8-4654-B3BA-263B721C4FD4}.Debug|Win32.Build.0 = Debug|Win32
+		{9D6559BD-F5B8-4654-B3BA-263B721C4FD4}.Release|Win32.ActiveCfg = Release|Win32
+		{9D6559BD-F5B8-4654-B3BA-263B721C4FD4}.Release|Win32.Build.0 = Release|Win32
+		{6A6BC8A5-A9F7-4E54-B15F-3FA4D1FE3C13}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6A6BC8A5-A9F7-4E54-B15F-3FA4D1FE3C13}.Debug|Win32.Build.0 = Debug|Win32
+		{6A6BC8A5-A9F7-4E54-B15F-3FA4D1FE3C13}.Release|Win32.ActiveCfg = Release|Win32
+		{6A6BC8A5-A9F7-4E54-B15F-3FA4D1FE3C13}.Release|Win32.Build.0 = Release|Win32
+		{A8A56442-EF6F-4A24-831B-A5000F3B63FF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A8A56442-EF6F-4A24-831B-A5000F3B63FF}.Debug|Win32.Build.0 = Debug|Win32
+		{A8A56442-EF6F-4A24-831B-A5000F3B63FF}.Release|Win32.ActiveCfg = Release|Win32
+		{A8A56442-EF6F-4A24-831B-A5000F3B63FF}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

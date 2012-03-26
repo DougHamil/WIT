@@ -3,7 +3,8 @@ University. All rights reserved. **/
 
 #ifndef DTI_VOLUME_H
 #define DTI_VOLUME_H
-#include <DTIMath.h>
+
+#include "DTIMath.h"
 #include <tnt/tnt_array1d.h>
 #include <tnt/tnt_array2d.h>
 #include <cstddef>

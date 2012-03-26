@@ -26,6 +26,7 @@ using namespace std;
 #include "Wm4/Wm4Utils.h"
 #include "Wm4/Wm4BandedMatrix.h"
 #include <limits.h>
+#include <stdint.h>
 #ifndef PATH_MAX
 	#define PATH_MAX 2048
 #endif
@@ -108,10 +109,11 @@ DTIPathwayIO::saveDatabaseAny(DTIPathwayDatabase *db, bool bOverwrite, std::stri
   myOut.close();
 }
 
+
 DTIPathwayDatabase *
 DTIPathwayIO::loadAndAppendDatabasePDB(std::istream &pdbStream, DTIPathwayDatabase * oldPdb, bool bComputeRAPID, double ACPC[3], double vox_size[3])
 {
-	bool bPrintOut = false;
+	bool bPrintOut = true;
 
 	if(bPrintOut) {
 		cout << "###################################################################" << endl;
@@ -387,19 +389,23 @@ void DTIPathwayIO::loadDatabasePDB2Ver2(std::istream &theStream, DTIPathwayDatab
 }
 void DTIPathwayIO::loadDatabasePDB2Ver3(std::istream &theStream, DTIPathwayDatabase *db, bool multiplyMatrix)
 {
-	bool bPrintOut			= false;
+	bool bPrintOut			= true;
 	int numPathways			= readScalar<int> (theStream);
 	int numPathStatistics	= db->getNumPathStatistics();
 	int nCntPercent			= 10;
 
+
+
 	// Read the number of points per fiber
 	int *points_per_fiber = new int[numPathways];
-	theStream.read((char*)points_per_fiber, sizeof(int)*numPathways);
-
+	theStream.read((char*)points_per_fiber, sizeof(int32_t)*numPathways);
+	bool failed = theStream.eof();
 	// Compute the total # of points across all fibers
 	int total_pts=0;
 	for(int i = 0; i < numPathways; i++)
+	{
 		total_pts += points_per_fiber[i];
+	}
 
 	// Read all the points
 	double *fiber_points = new double[total_pts*3];
@@ -449,6 +455,7 @@ void DTIPathwayIO::loadDatabasePDB2Ver3(std::istream &theStream, DTIPathwayDatab
 
 		pathway->initializePathStatistics(numPathStatistics, db->getPathStatisticHeaders(), true);
 		pathway->setID(k);
+
 		db->addPathway (pathway);
 
 		// build the rapid model

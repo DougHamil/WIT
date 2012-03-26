@@ -232,6 +232,7 @@ int znzputc(int c, znzFile file)
 }
 
 
+/*
 int znzgetc(znzFile file)
 {
   if (file==NULL) { return 0; }
@@ -240,6 +241,7 @@ int znzgetc(znzFile file)
 #endif
   return fgetc(file->nzfptr);
 }
+*/
 
 #if !defined (WIN32)
 int znzprintf(znzFile stream, const char *format, ...)

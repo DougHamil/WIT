@@ -6,7 +6,7 @@ TEMPLATE = app
 TARGET = WIT
 DESTDIR = ./
 QT += core gui opengl
-CONFIG += debug
+CONFIG += debug console
 DEFINES += QT_LARGEFILE_SUPPORT QT_OPENGL_LIB
 INCLUDEPATH += ./GeneratedFiles \
     ./GeneratedFiles/Debug \

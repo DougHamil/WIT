@@ -12,19 +12,22 @@ WITGroupPanel::WITGroupPanel(QWidget *panel)
 	thbox->addLayout(hbox);
 	QPushButton *wgb = new QPushButton("Add Group", this);
 
-	connect(wgb,SIGNAL(clicked()), WITApplication::getInstance().getGroups(), SLOT(addNewGroup()));
 	thbox->addWidget(wgb);
     setLayout(thbox);
 
 	this->signalMap = 0;
+	this->activeIndex = 0;
 
 	// Create our controller
 	controller = new WITGroupPanelController(this);
-
-	this->setNumberOfButtons(WITApplication::getInstance().getGroups()->getGroups().size());
 }
 
-void WITGroupPanel::setNumberOfButtons(int num)
+void WITGroupPanel::onActiveGroupSet(int index)
+{
+	buttons.at(index)->setChecked(true);
+}
+
+void WITGroupPanel::setNumberOfGroups(int num, Colord **colors)
 {
 
 	// Remove the old buttons
@@ -47,11 +50,13 @@ void WITGroupPanel::setNumberOfButtons(int num)
 	this->signalMap = new QSignalMapper(this);
 	connect(this->signalMap, SIGNAL(mapped(int)), this, SLOT(onSetActiveGroup(int)));
 
-	int activeIndex = WITApplication::getInstance().getGroups()->getActiveGroupIndex();
+	if(this->activeIndex >= num)
+		activeIndex = num - 1;
+
 	// Add the new buttons
 	for(int i = 0; i < num; i++)
 	{
-		WITGroupButton *b = new WITGroupButton(i, rand()%255, rand()%255, rand()%255);
+		WITGroupButton *b = new WITGroupButton(i, colors[i]);
 		this->signalMap->setMapping(b, i);
 		connect(b, SIGNAL(clicked()), this->signalMap, SLOT(map()));
         b->setCheckable(true);

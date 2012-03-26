@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include "../View/WITGroupPanel.h"
+#include "PathwayController.h"
 
 /**
 	The WITGroupPanelController is the controller for the WITGroupPanel view.  The WITGroupPanel is displays all of the
@@ -23,20 +24,10 @@ public:
 	WITGroupPanelController(WITGroupPanel *panel);
 
 public slots:
-	/**
-		Receives a signal from the GroupCollection model when a group is added.
-	*/
-	void onGroupAdded();
-
-	/**
-		Receives a signal from the GroupCollection model when the active group is set
-
-		@param index the index of the newly selected active group
-	*/
-	void onActiveGroupSet(int index);
 
 private:
 	WITGroupPanel *panel;
+	PathwayController *pathwayController;
 };
 
 #endif

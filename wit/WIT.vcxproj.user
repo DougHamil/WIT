@@ -2,8 +2,12 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ShowAllFiles>true</ShowAllFiles>
-    <LocalDebuggerEnvironment Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PATH=$(QTDIR)\bin%3b"$(QTDIR)\bin%3b$(PATH)</LocalDebuggerEnvironment>
-    <LocalDebuggerEnvironment Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PATH=$(QTDIR)\bin%3b"$(QTDIR)\bin%3b$(PATH)</LocalDebuggerEnvironment>
-    <QTDIR>C:\Qt\4.7.4</QTDIR>
+    <LocalDebuggerEnvironment Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PATH=$(QTDIR)\bin%3bC:\VTK-Git\bin%3b$(QTDIR)\bin%3b"$(QTDIR)\bin%3b$(PATH)</LocalDebuggerEnvironment>
+    <LocalDebuggerEnvironment Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PATH=$(QTDIR)\bin%3b"$(QTDIR)\bin%3bC:\VTK-Git\bin;$(PATH)</LocalDebuggerEnvironment>
+    <QTDIR>C:\Qt\4.8.0</QTDIR>
+    <LocalDebuggerCommandArguments Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">-nograb -vol "C:\Users\Doug\Desktop\VistaData\quench\bg_images\t1.nii.gz" -pdb "C:\Users\Doug\Desktop\VistaData\quench\fibers\leftILF.pdb" </LocalDebuggerCommandArguments>
+    <DebuggerFlavor Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerCommandArguments Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">-vol "C:\Users\Doug\Desktop\VistaData\quench\bg_images\t1.nii.gz" -pdb "C:\Users\Doug\Desktop\VistaData\quench\fibers\leftILF.pdb" </LocalDebuggerCommandArguments>
+    <DebuggerFlavor Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

@@ -1,6 +1,6 @@
 #ifndef MEMENTO_H
 #define MEMENTO_H
-
+#include <QObject>
 #include <iostream>
 /**
 	Memento the an abstract base class for specific Memento implementations.
@@ -14,20 +14,9 @@
 class Memento
 {
 public:
-	/**
-		Base constructor, does nothing.
-	*/
-	Memento(){}
 
-	/**
-		Constructor for restoring a memento from a stream
-	*/
-	Memento(std::istream stream);
-
-	/**
-		Writes the memento to a stream
-	*/
-	virtual void toStream(std::ostream stream) = 0;
+	virtual void Undo(){}
+	virtual void Redo(){}
 	
 };
 

@@ -4,8 +4,9 @@
 // - Qt
 #include <QtGui/QApplication>
 // - WIT
-#include "View/WITMainWindow.h"
-#include "Model/GroupCollection.h"
+#include "Controller/WITMainWindowController.h"
+#include "Controller/PathwayController.h"
+#include "Controller/SubjectDataController.h"
 #include "Model/Undo/UndoSystem.h"
 // - STL
 #include <vector>
@@ -43,18 +44,20 @@ public:
 	QApplication *getQApplication(){return qApplication;}
 
 	/**
-		Returns the WITMainWindow object.
+		Returns the WITMainWindowController object.
 
-		@return the WITMainWindow object
+		@return the WITMainWindowController object
 	*/
-	WITMainWindow *getMainWindiow(){return win_Main;}
+	WITMainWindowController *getMainWindowController(){return mainWinController;}
 
 	/**
 		Return the collection of Group objects, each representing a pathway group
 
 		@return A GroupCollection object containing each of the pathway groups.
 	*/
-	GroupCollection *getGroups(){return groups;}
+	PathwayController *getPathwayController(){return pathwayController;}
+
+	SubjectDataController *getSubjectDataController(){return subjectDataController;}
 
 	/**
 		Gets the UndoSystem for the application.
@@ -65,8 +68,9 @@ public:
 
 private:
 	QApplication *qApplication;
-	WITMainWindow *win_Main;
-	GroupCollection *groups;
+	WITMainWindowController *mainWinController;
+	PathwayController *pathwayController;
+	SubjectDataController *subjectDataController;
 	UndoSystem *undoSystem;
 
 
@@ -92,9 +96,6 @@ private:
 	WITApplication(){};
 	WITApplication(WITApplication const&);
 	void operator=(WITApplication const&);
-	
-
-
 };
 
 #endif

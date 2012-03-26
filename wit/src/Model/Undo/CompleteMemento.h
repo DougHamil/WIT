@@ -3,6 +3,10 @@
 
 #include "Memento.h"
 
+
+class PathwayMemento;
+class WITApplication;
+
 /**
 	This class stores the state of the entire application at once.
 	This is generally used by the UndoSystem directly when dealing with
@@ -16,7 +20,13 @@
 */
 class CompleteMemento : public Memento
 {
-
+public:
+	CompleteMemento(WITApplication *app);
+	virtual void Undo(){};
+	virtual void Redo(){};
+	virtual void toStream(std::ostream &os){}
+private:
+	PathwayMemento *pMemento;
 };
 
 #endif

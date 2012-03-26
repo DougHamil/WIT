@@ -35,7 +35,6 @@
     <ClInclude Include="..\..\..\opcode\OPC_TriTriOverlap.h" />
     <ClInclude Include="..\..\..\opcode\OPC_VolumeCollider.h" />
     <ClInclude Include="..\..\..\opcode\Opcode.h" />
-    <ClInclude Include="..\..\..\opcode\StdAfx.h" />
     <ClInclude Include="..\..\..\opcode\Ice\IceAABB.h" />
     <ClInclude Include="..\..\..\opcode\Ice\IceAxes.h" />
     <ClInclude Include="..\..\..\opcode\Ice\IceBoundingSphere.h" />
@@ -83,7 +82,6 @@
     <ClCompile Include="..\..\..\opcode\OPC_TreeCollider.cpp" />
     <ClCompile Include="..\..\..\opcode\OPC_VolumeCollider.cpp" />
     <ClCompile Include="..\..\..\opcode\Opcode.cpp" />
-    <ClCompile Include="..\..\..\opcode\StdAfx.cpp" />
     <ClCompile Include="..\..\..\opcode\Ice\IceAABB.cpp" />
     <ClCompile Include="..\..\..\opcode\Ice\IceContainer.cpp" />
     <ClCompile Include="..\..\..\opcode\Ice\IceHPoint.cpp" />
