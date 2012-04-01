@@ -44,6 +44,7 @@ public slots:
 	void loadPDB(std::string file);
 	void setActiveGroup(int index);
 	void onFilterByGesture(PCollModel model);
+	
 private:
 	void addGroup(DTIPathwayGroupID id, std::string &name);
 	PDBHelper pdbHelper;

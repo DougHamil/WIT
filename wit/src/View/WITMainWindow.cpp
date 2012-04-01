@@ -8,27 +8,17 @@
 WITMainWindow::WITMainWindow(QWidget *parent, Qt::WFlags flags)
 	: QMainWindow(parent, flags)
 {
-	this->activeSplitter = 0;
 	this->setWindowTitle("WIT");
 	this->setSizePolicy(QSizePolicy::Policy::Maximum, QSizePolicy::Policy::Maximum);
 	this->centralLayout = new QVBoxLayout();
 	this->setLayout(this->centralLayout);
-	this->centralWidget = new QWidget(this);
-	this->centralWidget->setLayout(this->centralLayout);
-	this->setCentralWidget(this->centralWidget);
-	// Create each WITFrame
-	for(int i = 0; i < WITFRAME_COUNT; i++)
-	{
-		if(i > 0)
-			this->frames[i] = new WITFrame(0, this->frames[0]);
-		else
-			this->frames[i] = new WITFrame(0);
-	}
+	this->viewWidget = new WITViewWidget();
+	this->setCentralWidget(this->viewWidget);
+
 	resize(800,600);
 	
 	this->createMenus();
 	this->createPanels();
-	this->onSetViewCount(4);
 }
 
 WITMainWindow::~WITMainWindow(){}
@@ -76,73 +66,10 @@ void WITMainWindow::createMenus()
 	connect(viewDual, SIGNAL(triggered()), map, SLOT(map()));
 	connect(viewQuad, SIGNAL(triggered()), map, SLOT(map()));
 
-	connect(map, SIGNAL(mapped(int)), this, SLOT(onSetViewCount(int)));
+	// Connect the view count selection menu to the viewWidget's setViewCount method
+	connect(map, SIGNAL(mapped(int)), this->viewWidget, SLOT(onSetViewCount(int)));
 
 	this->menuBar()->addMenu(mnu_View);
-}
-
-void WITMainWindow::onSetViewCount(int num)
-{
-	if(num == 1 && this->activeSplitter != 0)
-	{
-		for(int i = 0; i < WITFRAME_COUNT; i++)
-		{
-			this->frames[i]->setParent(0);
-		}
-		if(this->activeSplitter)
-		{
-			this->activeSplitter->setParent(0);
-			this->activeSplitter->hide();
-			delete this->activeSplitter;
-		}
-		this->centralLayout->addWidget(this->frames[0]);
-		this->activeSplitter = 0;
-	}
-	else if(num == 2 && this->activeSplitter != this->dualSplit)
-	{
-		for(int i = 0; i < WITFRAME_COUNT; i++)
-		{
-			this->frames[i]->setParent(0);
-		}
-		dualSplit = new QSplitter(this);
-		this->dualSplit->addWidget(this->frames[0]);
-		this->dualSplit->addWidget(this->frames[1]);
-		if(this->activeSplitter)
-		{
-			this->activeSplitter->setParent(0);
-			this->activeSplitter->hide();
-			delete this->activeSplitter;
-		}
-
-		this->centralLayout->addWidget(this->dualSplit);
-		this->activeSplitter = this->dualSplit;
-		this->activeSplitter->show();
-	}
-	else if(num == 4 && this->activeSplitter != this->quadSplit)
-	{
-		for(int i = 0; i < WITFRAME_COUNT; i++)
-		{
-			this->frames[i]->setParent(0);
-		}
-		quadSplit = new QuadSplit(frames[0], frames[1], frames[2], frames[3], this);
-		if(this->activeSplitter)
-		{
-			this->activeSplitter->setParent(0);
-			this->activeSplitter->hide();
-			delete this->activeSplitter;
-		}
-		this->centralLayout->addWidget(this->quadSplit);
-
-
-		this->activeSplitter = this->quadSplit;
-		this->activeSplitter->show();
-	}
-	for(int i = 0; i < WITFRAME_COUNT; i++)
-	{
-		this->frames[i]->updateGeometry();
-	}
-
-	this->updateGeometry();
 }
 
 void WITMainWindow::onLoadPDB()

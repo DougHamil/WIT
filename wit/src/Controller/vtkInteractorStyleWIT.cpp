@@ -5,6 +5,7 @@
 *  DESCR: 
 ***********************************************************************/
 #include "vtkInteractorStyleWIT.h"
+#include "../View/WITViewWidget.h"
 #include "vtkRenderWindowInteractor.h"
 #include "../View/VTK/vtkROI.h"
 #include "vtkRenderer.h"
@@ -17,7 +18,8 @@
 #include "vtkCommand.h"
 #include "vtkRenderer.h"
 #include "vtkCamera.h"
-#include "vtkRenderWindow.h"
+#include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkRenderWindow.h>
 #include <vtkRendererCollection.h>
 #include <vtkWindowToImageFilter.h>
 #include <vtkJPEGWriter.h>
@@ -72,207 +74,22 @@ vtkInteractorStyleWIT::~vtkInteractorStyleWIT()
 	delete _voiViz; _voiViz = 0;
 	delete _GestureInteractor;
 }
-void vtkInteractorStyleWIT::Init(WITFrame *frame)
+void vtkInteractorStyleWIT::Init(WITViewWidget *widget)
 {
-	this->frame = frame;
+	this->view = widget;
 
 	//  _editing_voi = false;
 	_interaction_mode = INTERACTION_IDLE;
 	// connect the render window and wxVTK window
-	frame->getRenderWindow()->GetInteractor()->SetInteractorStyle(this);
-
-	vtkRenderWindow *pRenderWindow = frame->getRenderWindow();
-	_renderer = vtkRenderer::New();
-	pRenderWindow->AddRenderer(_renderer);
-	//pRenderWindow->LineSmoothingOff();
-	//pRenderWindow->PolygonSmoothingOff();
-	//pRenderWindow->SetAAFrames(0);
-	//pRenderWindow->SetSize(200,200);  
-
-	vtkCamera *camera = vtkCamera::New();
-	_renderer->SetActiveCamera(camera);
-	camera->Delete();
+	this->view->GetRenderWindow()->GetInteractor()->SetInteractorStyle(this);
 	FindPokedRenderer(0,0);
-	CurrentRenderer->SetBackground(0.74, 0.74, 0.66);
-	_volViz = new WITVolumeViz(_renderer);
+	
 	_pathwayViz = &WITApplication::getInstance().getPathwayController()->getPathwayViz();
 	//_voiViz = new WITROIViz(_renderer);
-	_GestureInteractor = new WITGestureController(_renderer);
+
 	//_voiEditor = new qROIEditor(_renderer, _volViz);
 	pp = vtkWorldPointPicker :: New();
 	//_voiEditor->SetEditingROIMode(false);
-}
-
-void vtkInteractorStyleWIT::ToggleImages(DTISceneActorID imageId, int ShiftKeyDown)
-{
-	if (ShiftKeyDown) 
-	{
-		bool show = !_volViz->Visibility(imageId);
-		_volViz->SetVisibility(imageId, show);
-		
-		//if(!show)
-			//NotifyAllListeners(PEvent ( new Event(UPDATE_SURFACE_MODE_GEOMETRY) ));
-		////	frame->ToggleOverlayVisibility(imageId);
-		////	this->frame->SetVisibilityCheck(imageId, _Scene->GetActorFromID(imageId)->GetVisibility()?true:false);
-	} 
-	else
-	{
-		_volViz->SetActiveImage(imageId);
-		//NotifyAllListeners(PEvent ( new Event(UPDATE_SURFACE_MODE_GEOMETRY) ));
-	}
-	//this->EventCallbackCommand->SetAbortFlag(1);
-	////	_Scene->GetPathwayViz()->SetIntersectionGeometry();
-	//_renderer->GetRenderWindow()->Render();
-	emit doRender();
-	//this->frame->update();
-}
-/***********************************************************************
-*  Method: vtkInteractorStyleWIT::OnKeyPress
-*  Params: 
-* Returns: void
-* Effects: 
-***********************************************************************/
-void vtkInteractorStyleWIT::OnKeyPress()
-{
-	if (this->Interactor->GetControlKey())
-		return;
-
-	//if(_voiViz->OnKeyDown(Interactor->GetKeyCode()))
-	//	return;
-
-	vtkRenderWindowInteractor *rwi = this->Interactor;
-	this->FindPokedRenderer(0,0);
-	vtkCamera *camera = this->CurrentRenderer->GetActiveCamera();
-	switch (Interactor->GetShiftKey())
-	{
-	case 1: //Shift is pressed
-		switch(Interactor->GetKeyCode())
-		{
-		case '0':
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-		case '8':
-		case '9':
-			//NotifyAllListeners(PEvent(new EventPathwayGroupVisibilityChanged(Interactor->GetKeyCode() - '0')));
-			break;
-
-		case 'S':
-			//NotifyAllListeners(PEvent ( new EventToggleImagePlane(DTI_ACTOR_SAGITTAL_TOMO,1) ));
-			//ToggleImages(DTI_ACTOR_SAGITTAL_TOMO,1);
-			break;
-
-		case 'C':
-			//NotifyAllListeners(PEvent ( new EventToggleImagePlane(DTI_ACTOR_CORONAL_TOMO,1) ));
-			//ToggleImages(DTI_ACTOR_CORONAL_TOMO,1);
-			break;
-
-		case 'A':
-			//NotifyAllListeners(PEvent ( new EventToggleImagePlane(DTI_ACTOR_AXIAL_TOMO,1) ));
-			//ToggleImages(DTI_ACTOR_AXIAL_TOMO,1);
-			break;
-				
-		case 'W':
-			_pathwayViz->IncreaseLineWidth(-1);
-			break;
-		}
-		break;
-	case 0: //Shift is not pressed
-		switch(Interactor->GetKeyCode())
-		{
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-		case '8':
-		case '9':
-			//NotifyAllListeners(PEvent(new EventPathwayGroupSelected(Interactor->GetKeyCode() - '0')));
-			break;
-
-		case '0':
-			//NotifyAllListeners(PEvent(new EventPathwayGroupVisibilityChanged(Interactor->GetKeyCode() - '0')));
-			break;
-
-		case ',':
-			_volViz->MoveActiveImage(-1);
-			//NotifyAllListeners(PEvent ( new Event(UPDATE_SURFACE_MODE_GEOMETRY) ));
-			break;
-		case '.':
-			_volViz->MoveActiveImage(1);
-			//NotifyAllListeners(PEvent ( new Event(UPDATE_SURFACE_MODE_GEOMETRY) ));
-			break;
-
-			case 'S':
-				//NotifyAllListeners(PEvent ( new EventToggleImagePlane(DTI_ACTOR_SAGITTAL_TOMO,0) ));
-				//ToggleImages(DTI_ACTOR_SAGITTAL_TOMO,0);
-				break;
-				
-			case 'C':
-				//NotifyAllListeners(PEvent ( new EventToggleImagePlane(DTI_ACTOR_CORONAL_TOMO,0) ));
-				//ToggleImages(DTI_ACTOR_CORONAL_TOMO,0);
-				break;
-				
-			case 'A':
-				//NotifyAllListeners(PEvent ( new EventToggleImagePlane(DTI_ACTOR_AXIAL_TOMO,0) ));
-				//ToggleImages(DTI_ACTOR_AXIAL_TOMO,0);
-				break;
-				
-//		case 'S':
-//			ToggleImages(DTI_ACTOR_SAGITTAL_TOMO,0);
-//			break;
-//
-//		case 'C':
-//			ToggleImages(DTI_ACTOR_CORONAL_TOMO,0);
-//			break;
-//
-//		case 'A':
-//			ToggleImages(DTI_ACTOR_AXIAL_TOMO,0);
-//			break;
-
-		case 'W':
-			_pathwayViz->IncreaseLineWidth(1);
-			break;
-
-		case 'h':
-		case 'H':
-			//NotifyAllListeners(PEvent ( new Event(TOGGLE_MESH_VISIBILITY) ));
-			break;
-			/*
-		case 'v':
-		case 'V': 
-		  if (_voiEditor->GetEditingROIMode() == true) {
-		    NotifyAllListeners(PEvent(new Event(ROI_EDIT_MODE_OFF)));
-		  }
-		  else {
-		  NotifyAllListeners(PEvent (new Event(ROI_EDIT_MODE_ON)));
-		  }
-		  //ToggleROIEditingMode();
-		break;
-		case 'd':
-		case 'D':
-		  NotifyAllListeners(PEvent( new Event(ROI_DRAW_NEW_ROI)));
-		//		  HandDrawROI();
-		break;
-		case '-':
-		  //		  _voiEditor->DecreaseBrushSize();
-		  //		  NotifyAllListeners(PEvent ( new Event(REFRESH_VIZ) ));
-		  break;
-		case '=':
-		  //		  _voiEditor->IncreaseBrushSize();
-		  //		  NotifyAllListeners(PEvent ( new Event(REFRESH_VIZ) ));
-		  break;
-			*/
-		}
-		break;
-	}
-
 }
 
 void point3d(int x, int y, vtkRenderer * _renderer )
@@ -324,11 +141,9 @@ void vtkInteractorStyleWIT::OnMouseMove()
 	//If we are still drawing a gesture, continue doing so
 	if(_interaction_mode == INTERACTION_DRAW_GESTURE)
 	{	  
-		_GestureInteractor->AddPoint(x,y);
-		//NotifyAllListeners(PEvent ( new EventRefreshViz(true) ) );
-		//this->frame->update();
-		emit doRender();
-		//CurrentRenderer->GetRenderWindow()->Render();
+		emit this->addGesturePoint(x,y);
+
+		this->view->update();
 		return;
 	}
 
@@ -346,46 +161,39 @@ void vtkInteractorStyleWIT::OnMouseMove()
 		return; //ROI editing in process.
 	*/
 	else {
-	  switch (this->State)  
-	    {
-	    case VTKIS_ROTATE:
-	      Rotate();
-	      InvokeEvent(vtkCommand::InteractionEvent, NULL);
-	      break;
-	    case VTKIS_PAN:
-	      Pan();
-	      InvokeEvent(vtkCommand::InteractionEvent, NULL);
-	      break;
-	    case VTKIS_DOLLY:
-	      {
-		double *center = CurrentRenderer->GetCenter();
-		double dyf = MotionFactor * (double)(dy) / (double)(center[1]);
-		double scale = pow((double)1.1, dyf);
-		Dolly(scale);
-		//_voiViz->Dolly(scale);
-		emit doRender();
-		//CurrentRenderer->GetRenderWindow()->Render();
-		//this->frame->update();
-	      }
-	      InvokeEvent(vtkCommand::InteractionEvent, NULL);
-	      break;
-	    case VTKIS_SPIN:
-	      Spin();
-	      InvokeEvent(vtkCommand::InteractionEvent, NULL);
-	      //this->frame->RefreshViz ();
-	      break;
-	      //default:
-	      // if(_Scene->GetPathwayViz()->PickManipulationTools(x,y) != -1)
-	      //  frame->RefreshViz();
-	      // break;
-	    }
+
+		switch (this->State)  
+		{
+		case VTKIS_ROTATE:
+			Rotate();
+			InvokeEvent(vtkCommand::InteractionEvent, NULL);
+			break;
+		case VTKIS_PAN:
+			Pan();
+			InvokeEvent(vtkCommand::InteractionEvent, NULL);
+			break;
+		case VTKIS_DOLLY:
+			{
+			double *center = CurrentRenderer->GetCenter();
+			double dyf = MotionFactor * (double)(dy) / (double)(center[1]);
+			double scale = pow((double)1.1, dyf);
+			Dolly(scale);
+			//_voiViz->Dolly(scale);
+			emit doRender();
+			InvokeEvent(vtkCommand::InteractionEvent, NULL);
+			break;
+			}
+		case VTKIS_SPIN:
+			Spin();
+			InvokeEvent(vtkCommand::InteractionEvent, NULL);
+			break;
+		}
+		this->view->update();
 	}
 
 }
 void vtkInteractorStyleWIT::OnLeftButtonDown()
 {
-	_mouse_moved = false;
-	_left_button_down = 1;
 	FindPokedRenderer(Interactor->GetEventPosition()[0], Interactor->GetEventPosition()[1]);
 
 	_mousedown_x = this->Interactor->GetEventPosition()[0];
@@ -393,20 +201,16 @@ void vtkInteractorStyleWIT::OnLeftButtonDown()
 
 	if (this->Interactor->GetControlKey()) 
 	{
-	  _GestureInteractor->BeginSelect(_mousedown_x, _mousedown_y);
-	  //NotifyAllListeners(PEvent ( new EventRefreshViz(true) ) );
-	  //_renderer->GetRenderWindow()->Render();
-	  emit doRender();
-	  //this->frame->update();
-	  _interaction_mode = INTERACTION_DRAW_GESTURE;
-	  return;
+		emit this->beginGesture(_mousedown_x, _mousedown_y);
+		_interaction_mode = INTERACTION_DRAW_GESTURE;
+		return;
 	} 
 
 	// xxxdla trying to fix bug with interactions
 
 	//if( _voiViz->OnLeftDown(_mousedown_x, _mousedown_y) )
 	//	return ;
-	Interactor->GetShiftKey()?StartPan():StartRotate();
+	Interactor->GetShiftKey() ? StartPan() : StartRotate();
 }
 void vtkInteractorStyleWIT::OnLeftButtonUp()
 {
@@ -416,38 +220,8 @@ void vtkInteractorStyleWIT::OnLeftButtonUp()
 
 	if(_interaction_mode == INTERACTION_DRAW_GESTURE)
 	{
+		emit this->endGesture(x,y,false);
 	    _interaction_mode = INTERACTION_IDLE;
-		_GestureInteractor->EndSelect(x,y,false);
-		bool pathwayVisibility = this->frame->getPathwayActor()->GetVisibility();
-		//bool pointsVisiblity  = _pathwayViz->PointsVisibility();
-
-		// Hide Pathways
-		bool bfalse = false; 
-		if(this->frame->getPathwayActor())
-			this->frame->getPathwayActor()->SetVisibility(bfalse);
-		
-		//_pathwayViz->SetPointsVisibility(bfalse);
-
-		PCollModel model;
-
-		// TODO: Handle either surface or touch mode
-		if (true) {
-			model = _GestureInteractor->PruneGesture2CollModel();
-		} else if (false) {
-			model = _GestureInteractor->SurfaceIntersectionGesture2CollModel();
-		} else {
-			cerr << "WARNING: Don't recognize gesture mode." << endl;
-		}
-
-		if(this->frame->getPathwayActor())
-			this->frame->getPathwayActor()->SetVisibility(pathwayVisibility);
-		//_pathwayViz->SetPointsVisibility(pointsVisiblity);
-
-		emit this->filterByGesture(model);
-		//NotifyAllListeners(PEvent ( new EventFilterPathwaysByGesture(model) ) );
-		emit doRender();
-		//_renderer->GetRenderWindow()->Render();
-		//this->frame->update();
 		return;
 	}
 	_left_button_down=0;
@@ -478,7 +252,6 @@ void vtkInteractorStyleWIT::OnLeftButtonUp()
 	}
 	State = VTKIS_NONE;
 	_interaction_mode = INTERACTION_IDLE;
-	//this->frame->update();
 }
 void vtkInteractorStyleWIT::OnMiddleButtonDown()
 {
@@ -539,11 +312,13 @@ void vtkInteractorStyleWIT::OnMouseWheelForward()
 {
 	FindPokedRenderer(Interactor->GetEventPosition()[0], Interactor->GetEventPosition()[1]);
 	emit doMoveActiveVolumeSlice(1);
+	this->view->update();
 }
 void vtkInteractorStyleWIT::OnMouseWheelBackward()
 {
 	this->FindPokedRenderer(Interactor->GetEventPosition()[0], Interactor->GetEventPosition()[1]);
 	emit doMoveActiveVolumeSlice(-1);
+	this->view->update();
 }
 void vtkInteractorStyleWIT::Rotate()
 {

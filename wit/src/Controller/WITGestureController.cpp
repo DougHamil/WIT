@@ -187,6 +187,7 @@ PCollModel WITGestureController::PruneGesture2CollModel()
 	vtkWindowToImageFilter *filter = NULL;
 	depthImage = ComputeDepthImage(filter);
 	int *size = _renderer->GetRenderWindow()->GetSize();
+	double *vp = _renderer->GetViewport();
 	
 	// compute triangle in world space, intersect it with the pathways:
 	double eyePoint[4];
@@ -200,11 +201,17 @@ PCollModel WITGestureController::PruneGesture2CollModel()
 		focalPoint[2] - eyePoint[2]};
 	vtkMath::Normalize(focalVector);
 	trianglePoints->InsertNextPoint (eyePoint);
+
+	double offsetX = vp[0] * size[0];
+	double offsetY = vp[1] * size[1];
+
 	for (int i = 0; i < gesture->GetNumberOfPoints(); i++) {
 		double displayPoint[3];
 		double pickPointFar[3];
 		int imageOffsets[3];
 		gesture->GetPoint(i, displayPoint);
+		displayPoint[0] += offsetX;
+		displayPoint[1] += offsetY;
 		IntersectSurface (displayPoint, pickPointFar, depthImage, imageOffsets);
 		trianglePoints->InsertNextPoint (pickPointFar);
 		trianglePoints->Modified();

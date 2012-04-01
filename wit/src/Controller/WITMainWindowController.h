@@ -11,7 +11,7 @@ class WITMainWindowController : public QObject
 {
 	Q_OBJECT
 public:
-	WITMainWindowController();
+	WITMainWindowController(WITMainWindow *window);
 	void showWindow();
 private:
 	WITMainWindow *window;

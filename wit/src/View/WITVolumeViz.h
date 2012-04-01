@@ -8,6 +8,7 @@
 #include <QObject>
 #include <util/DTIVolume.h>
 #include "../WITTypedefs.h"
+#include <map>
 
 class vtkImageActor;
 class vtkImageSlice;
@@ -22,6 +23,8 @@ class vtkTextActor;
 class vtkRenderer;
 class vtkPropPicker;
 class vtkPropCollection;
+class vtkRenderWindow;
+class vtkImageMapToColors;
 
 
 //! This class handles interaction with the current background nifti image
@@ -29,8 +32,12 @@ class WITVolumeViz : public QObject
 {
 	Q_OBJECT
 public:
-	WITVolumeViz(vtkRenderer *renderer);
+	WITVolumeViz();
 	~WITVolumeViz();
+
+	void RegisterRenderer(vtkRenderer *rend);
+	void UnregisterRenderer(vtkRenderer *rend);
+	void SetCameraToDefault(vtkRenderer *rend);
 	//! Sets the current background image
 	void SetVolume(DTIScalarVolume* vol, float left, float right);
 	//! Adds a new background image
@@ -47,8 +54,7 @@ public:
 	void DisplayBorder();
 	//! \return the current active slice
 	PROPERTY_DECLARE(DTISceneActorID, _nActiveImage, ActiveImage ); 
-	//! moves the currently active slice by \param amount
-	void MoveActiveImage(int amount);
+
 	//! Gets the 3d world pos which corresponds to the intersection of the axial, saggital and coronal planes
 	DTIVector GetWorldPos();
 	//! \return the associated user matrix
@@ -73,9 +79,9 @@ public:
 	//! Gets the 3d extent of the slice specified by \param id
 	void GetDisplayExtent (DTISceneActorID id, int displayExtent[6]);
 	//! \return the visibility of the slice specified by \param id
-	bool Visibility(DTISceneActorID id);
+	bool GetVisibility(vtkRenderer *rend, DTISceneActorID id);
 	//! Sets the visiblity of a slice
-	void SetVisibility(DTISceneActorID id, bool b);
+	void SetVisibility(vtkRenderer *rend, DTISceneActorID id, bool b);
 
 	//! Brings up the overlay panel if a volume is clicked.
 	bool OnRightButtonUp(int x, int y);
@@ -88,22 +94,36 @@ public:
 	static void LocalToWorld(double *mat, double *lPos, double *wPos);
 	static bool WorldToLocal(double *mat, double *wPos, uint *dim, DTIVoxel &lPos, bool round = false);
 	static void WorldToLocal(double *mat, double *wPos, uint *dim, double *flPos);
-
+public slots:
+	//! moves the currently active slice by \param amount
+	void MoveActiveImage(int amount);
 
 private:
+	
+	void updateUserMatrices();
+	void updateActors();
+	void setSliceActorsToColors(vtkImageMapToColors*, vtkImageMapToColors*, vtkImageMapToColors*);
+	struct ActorSet
+	{
+		vtkPropPicker *propPicker;
+		vtkPropCollection *propCollection;
+		vtkPolyDataMapper *borderMapper;
+		vtkImageActor *sag, *axial, *cor;
+		vtkActor	 *border;
+		vtkTextActor *text;
+	};
+	ActorSet *getActorSet(vtkRenderer *rend);
+	ActorSet *generateNewActorSet(vtkRenderWindow *win);
 	//std::vector<POverlay> _overlays;			/// Array of overlays
 	DTIScalarVolume* _vol;						/// The active background image
 	vtkImageData* _img;							/// The vtk data corresponding to the background image
-	vtkImageActor *_aSag, *_aAxial, *_aCor;		/// The vtk actors  corresponding to the 3 slices
-	vtkTextActor  *_aPosition;					/// The text displaying the current position in the image space
 	vtkWindowLevelLookupTable *_lutBW;			/// LUT for brighness
 	vtkColorTransferFunction *_lutColor;		///
 	vtkPolyData         *_pdBorder;				/// vtk helpers to show a red border along the selected slice
-	vtkPolyDataMapper   *_mBorder;				/// vtk helpers to show a red border along the selected slice
-	vtkActor            *_aBorder;				/// vtk helpers to show a red border along the selected slice
-	vtkRenderer			*_renderer;				/// pointer to the global vtk renderer
-	vtkPropPicker *_propPicker;					/// Helper class to pick a ROIs
-	vtkPropCollection *_propCollection;			/// Helper class which stores a collection of voi
+	int sagExtent[6];
+	int corExtent[6];
+	int axialExtent[6];
+	std::map<vtkRenderWindow*,ActorSet*> windowToActorSet;
 };
 
 #endif

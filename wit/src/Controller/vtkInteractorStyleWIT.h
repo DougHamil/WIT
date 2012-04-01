@@ -9,11 +9,11 @@
 
 #include "vtkInteractorStyle.h"
 #include "../WITTypedefs.h"
-#include "../View/WITFrame.h"
+
 #include <util/typedefs.h>
 #include <string>
 
-
+class WITViewWidget;
 class vtkRenderWindowInteractor;
 class vtkCellLocator;
 class ModeSelector;
@@ -39,7 +39,10 @@ class vtkInteractorStyleWIT : public QObject, public vtkInteractorStyle
 {
 	Q_OBJECT
 signals:
-	void filterByGesture(PCollModel model);
+	
+	void beginGesture(int,int);
+	void addGesturePoint(int,int);
+	void endGesture(int,int,bool);
 	void doRender();
 	void doMoveActiveVolumeSlice(int dist);
 public:
@@ -47,11 +50,10 @@ public:
 	vtkTypeRevisionMacro(vtkInteractorStyleWIT, vtkInteractorStyle);
 	void PrintSelf(ostream& os, vtkIndent indent);
 
-	void Init(WITFrame *frame);
+	void Init(WITViewWidget *widget);
 	// Description:
 	// Event bindings controlling the effects of pressing mouse buttons
 	// or moving the mouse.
-	virtual void OnKeyPress();
 	virtual void OnMouseMove();
 	virtual void OnLeftButtonDown();
 	virtual void OnLeftButtonUp();
@@ -75,7 +77,6 @@ public:
 	void ResetView();
 	void SaveScreenImage (const char *filename, bool pristine = false);
 
-	void ToggleImages(DTISceneActorID imageId, int ShiftKeyDown);
 	// Gestures
 	void StartSelect();
 	void EndSelect();
@@ -96,7 +97,7 @@ protected:
 	vtkInteractorStyleWIT();
 	~vtkInteractorStyleWIT();
 	//int PickCell (vtkActor *actor, vtkCellLocator *locator, int mouseX, int mouseY, double pickedPoint[3]){return 0;}
-	WITFrame *frame;
+	WITViewWidget *view;
 	virtual void Dolly(double factor);
 	vtkSetMacro(State,int);
 

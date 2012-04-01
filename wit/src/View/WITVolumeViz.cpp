@@ -24,6 +24,7 @@
 #include <util/io_utils.h>
 #include "vtkCamera.h"
 #include <vtkImageSlice.h>
+#include <vtkRendererCollection.h>
 //#include "Quench.h"
 #include "vtkRenderWindow.h"
 #include "vtkPropPicker.h"
@@ -31,12 +32,11 @@
 #include <vtkAssemblyPath.h>
 
 
-WITVolumeViz::WITVolumeViz(vtkRenderer *renderer)
+WITVolumeViz::WITVolumeViz()
 {
 	_img=0;
 	_vol=NULL;
 	_pdBorder=NULL;
-	_mBorder=NULL;
 	_nActiveImage=(DTISceneActorID)-1;
 
 	// create a look up table to adjust the brightness/contrast of the background image
@@ -51,19 +51,12 @@ WITVolumeViz::WITVolumeViz(vtkRenderer *renderer)
 	_lutBW->SetHueRange (0, 1);
 	_lutBW->SetAlphaRange (0, 1);
 
-	// create the 3 actors for the 3 image planes
-	_aSag   = vtkImageActor::New();
-	_aAxial = vtkImageActor::New();
-	_aCor   = vtkImageActor::New();
-	_aBorder = vtkActor::New();
-	_aPosition = vtkTextActor::New();
-
-
 	_pdBorder = vtkPolyData::New();
 	vtkPoints *pts = vtkPoints::New();
 	pts->SetNumberOfPoints(4);
 	_pdBorder->SetPoints(pts);
 	pts->Delete();
+
 	// create a border actor used to highlight a particular image plane
 	vtkCellArray *border = vtkCellArray::New();
 	border->InsertNextCell(5);
@@ -74,49 +67,110 @@ WITVolumeViz::WITVolumeViz(vtkRenderer *renderer)
 	border->InsertCellPoint(0);
 	_pdBorder->SetLines(border);  
 	border->Delete();
-	_mBorder = vtkPolyDataMapper::New();
-	_mBorder->SetInput(_pdBorder);
-	_aBorder->SetMapper(_mBorder);
-	_aBorder->GetProperty()->SetColor(1,0,0);
-	_aBorder->GetProperty()->SetLineWidth(5);
-	_aBorder->SetVisibility(0); //Don't show it yet
+}
 
-	// add actors to renderer
-	_renderer = renderer;
-	_renderer->AddActor(_aBorder);
-	_renderer->AddActor(_aSag);
-	_renderer->AddActor(_aCor);
-	_renderer->AddActor(_aAxial);
-	_renderer->AddActor(_aPosition);
+void WITVolumeViz::RegisterRenderer(vtkRenderer *renderer)
+{
+	vtkRenderWindow *win = renderer->GetRenderWindow();
+
+	ActorSet *actors = 0;
+
+	// Is this window already registered?
+	actors = this->windowToActorSet.find(win) != this->windowToActorSet.end() ? this->windowToActorSet.find(win)->second : generateNewActorSet(win);
+
+	// If actors is zero, that means the renderer has no render window
+	if(actors == 0)
+		return;
+
+	// Add the actors to the renderer
+	renderer->AddActor(actors->border);
+	renderer->AddActor(actors->sag);
+	renderer->AddActor(actors->cor);
+	renderer->AddActor(actors->axial);
+	renderer->AddActor(actors->text);
+}
+
+WITVolumeViz::ActorSet *WITVolumeViz::generateNewActorSet(vtkRenderWindow *win)
+{
+	if(!win)
+		return 0;
+
+	ActorSet* as = new ActorSet();
+	as->sag = vtkImageActor::New();
+	as->axial = vtkImageActor::New();
+	as->cor = vtkImageActor::New();
+	
+	as->text = vtkTextActor::New();
+
+	// Build border actor/mapper
+	as->border = vtkActor::New();
+	as->borderMapper = vtkPolyDataMapper::New();
+	as->borderMapper->SetInput(this->_pdBorder);
+	as->border->SetMapper(as->borderMapper);
+	as->border->GetProperty()->SetColor(1,0,0);
+	as->border->GetProperty()->SetLineWidth(5);
 
 	// used to see if we clicked on a image plane
-	_propPicker = vtkPropPicker::New();
-	_propCollection = vtkPropCollection::New();
+	as->propPicker = vtkPropPicker::New();
+	as->propCollection = vtkPropCollection::New();
 
 	// add the image planes and border to the actor picker
-	_propCollection->AddItem(_aAxial);
-	_propCollection->AddItem(_aSag);
-	_propCollection->AddItem(_aCor);
-	_propCollection->AddItem(_aBorder);
+	as->propCollection->AddItem(as->axial);
+	as->propCollection->AddItem(as->sag);
+	as->propCollection->AddItem(as->cor);
+	as->propCollection->AddItem(as->border);
 
+	// Store it in our hashmap
+	this->windowToActorSet[win] = as;
+
+	updateActors();
+
+	return as;
 }
+void WITVolumeViz::setSliceActorsToColors(vtkImageMapToColors* sag, vtkImageMapToColors* axial, vtkImageMapToColors* cor)
+{
+	for(std::map<vtkRenderWindow*, ActorSet*>::iterator it = this->windowToActorSet.begin(); 
+		it != this->windowToActorSet.end(); it++)
+	{
+		
+		ActorSet *as = it->second;
+		as->sag->SetInput(sag->GetOutput());
+		as->cor->SetInput(cor->GetOutput());
+		as->axial->SetInput(axial->GetOutput());
+	}
+}
+
+void WITVolumeViz::updateUserMatrices()
+{
+	if(_vol) {
+		vtkMatrix4x4 *mx = vtkMatrix4x4::New();
+		mx->DeepCopy (_vol->getTransformMatrix());
+
+		// Apply user matrix to each registered actor
+		for(std::map<vtkRenderWindow*, ActorSet*>::iterator it = this->windowToActorSet.begin(); 
+			it != this->windowToActorSet.end(); it++)
+		{
+		
+			ActorSet *as = it->second;
+			as->sag->SetUserMatrix(mx);
+			as->cor->SetUserMatrix(mx);
+			as->axial->SetUserMatrix(mx);
+		}
+
+		mx->Delete();
+	}
+}
+
 WITVolumeViz::~WITVolumeViz()
 {
 	// release memory
 	//_overlays.clear();
-	VTK_SAFE_DELETE(_aPosition);
-	VTK_SAFE_DELETE(_aSag);
-	VTK_SAFE_DELETE(_aAxial);
-	VTK_SAFE_DELETE(_aCor);
 	VTK_SAFE_DELETE(_img);
 	VTK_SAFE_DELETE(_lutBW);
 	VTK_SAFE_DELETE(_lutColor);
-	VTK_SAFE_DELETE(_aBorder);
 	VTK_SAFE_DELETE(_pdBorder);
-	VTK_SAFE_DELETE(_mBorder);
-	VTK_SAFE_DELETE(_propPicker);
-	VTK_SAFE_DELETE(_propCollection);
 }
+
 void WITVolumeViz::AddVolume(DTIScalarVolume *vol)
 {
 	/*
@@ -134,34 +188,15 @@ void WITVolumeViz::AddVolume(DTIScalarVolume *vol)
 	float _left = _min+0.0*(_max-_min); float _right = _max-0.0*(_max-_min);
 	// set the volume
 	SetVolume(vol, _left, _right);
+
 }
-//Set the vtk volume for display
-void WITVolumeViz::SetVolume(DTIScalarVolume *vol, float left, float right)
+
+void WITVolumeViz::updateActors()
 {
-	//Volume is being set for the first time so display the border
 	if(!_vol)
-		_aBorder->SetVisibility(1);
+		return;
 
-	const DTIScalarVolume* oldVol = _vol;
-	_vol = vol;
-
-	// use the brightness and contrast by using the left and right variables
-	_lutBW->SetTableRange (left, right);
-	double window = right - left;
-	double level = left + window/2.0;
-	// adjust the range
-	_lutBW->SetWindow(window);
-	// adjust the midpoint
-	_lutBW->SetLevel(level);
-	_lutBW->Modified();
-
-	// set the transformation matrix of the 3 image actors to that of the background volume
-	vtkMatrix4x4 *mx = vtkMatrix4x4::New();
-	mx->DeepCopy (_vol->getTransformMatrix());
-	_aSag->SetUserMatrix (mx);
-	_aCor->SetUserMatrix (mx);
-	_aAxial->SetUserMatrix (mx);
-	mx->Delete();
+	this->updateUserMatrices();
 
 	uint dim[4];
 	double voxSize[3];
@@ -187,45 +222,112 @@ void WITVolumeViz::SetVolume(DTIScalarVolume *vol, float left, float right)
 		vtkImageMapToColors *sagittalColors = vtkImageMapToColors::New();
 		sagittalColors->SetInput(_img);
 		sagittalColors->SetLookupTable(lut);
-		_aSag->SetInput(sagittalColors->GetOutput());
-		sagittalColors->Delete();
 
 		// create the axial actor
 		vtkImageMapToColors *axialColors = vtkImageMapToColors::New();
 		axialColors->SetInput(_img);
 		axialColors->SetLookupTable(lut);
-		_aAxial->SetInput(axialColors->GetOutput());
-		axialColors->Delete();
 
 		// create the coronal actor
 		vtkImageMapToColors *coronalColors = vtkImageMapToColors::New();
 		coronalColors->SetInput(_img);
 		coronalColors->SetLookupTable(lut);
-		_aCor->SetInput(coronalColors->GetOutput());
+
+		// Apply the color map to all registered actors
+		this->setSliceActorsToColors(sagittalColors, axialColors, coronalColors);
+		sagittalColors->Delete();
+		axialColors->Delete();
 		coronalColors->Delete();
 	}
 	else {
-		_aSag->SetInput(_img);
-		_aAxial->SetInput(_img);
-		_aCor->SetInput(_img);
+		// Apply user matrix to each registered actor
+		for(std::map<vtkRenderWindow*, ActorSet*>::iterator it = this->windowToActorSet.begin(); 
+			it != this->windowToActorSet.end(); it++)
+		{
+		
+			ActorSet *as = it->second;
+			as->sag->SetInput(_img);
+			as->axial->SetInput(_img);
+			as->cor->SetInput(_img);
+		}
 	}
+
+	// Find the local pos based on world pos
+	DTIVoxel lPos = DTIVoxel(3);
+	WorldToLocal(_vol->getTransformMatrix(), _vPos, dim, lPos);
+
+	sagExtent[0] = lPos[0];		sagExtent[1] = lPos[0];			sagExtent[2] = 0; 
+	sagExtent[3] = dim[1]-1;	sagExtent[4] = 0;				sagExtent[5] = dim[2] - 1;
+
+	axialExtent[0] = 0;			axialExtent[1] = dim[0] - 1;	axialExtent[2] = 0;
+	axialExtent[3] = dim[1]-1;	axialExtent[4] = lPos[2];		axialExtent[5] = lPos[2];
+
+	corExtent[0] = 0;			corExtent[1] = dim[0]-1;		corExtent[2] = lPos[1];
+	corExtent[3] = lPos[1];		corExtent[4] = 0;				corExtent[5] = dim[2] - 1;
+
+	// set the extent to which the image should be mapped
+	// Apply user matrix to each registered actor
+	for(std::map<vtkRenderWindow*, ActorSet*>::iterator it = this->windowToActorSet.begin(); 
+		it != this->windowToActorSet.end(); it++)
+	{
+		
+		ActorSet *as = it->second;
+		as->sag->SetDisplayExtent(sagExtent);
+		as->axial->SetDisplayExtent(axialExtent);
+		as->cor->SetDisplayExtent(corExtent);
+
+		as->sag->Modified();
+		as->cor->Modified();
+		as->axial->Modified();
+
+		// set the position in the as->text text actor
+		as->text->GetTextProperty()->SetFontSize(16);
+		as->text->GetTextProperty()->SetFontFamilyToArial();
+		as->text->GetTextProperty()->SetJustificationToLeft();
+		as->text->GetPositionCoordinate()->SetValue(2,0);
+		//as->text->GetTextProperty()->BoldOn();
+		//as->text->GetTextProperty()->ItalicOn();
+		as->text->GetTextProperty()->SetColor(0,0,0);
+		as->text->Modified();
+	}
+}
+
+
+//Set the vtk volume for display
+void WITVolumeViz::SetVolume(DTIScalarVolume *vol, float left, float right)
+{
+	//Volume is being set for the first time so display the border
+
+	const DTIScalarVolume* oldVol = _vol;
+	_vol = vol;
+
+	// use the brightness and contrast by using the left and right variables
+	_lutBW->SetTableRange (left, right);
+	double window = right - left;
+	double level = left + window/2.0;
+	// adjust the range
+	_lutBW->SetWindow(window);
+	// adjust the midpoint
+	_lutBW->SetLevel(level);
+	_lutBW->Modified();
+
+	this->updateActors();
+	
+
+	uint dim[4];
+	double voxSize[3];
+	_vol->getDimension(dim[0], dim[1], dim[2], dim[3]);
+	_vol->getVoxelSize(voxSize[0], voxSize[1], voxSize[2]);
 
 	if (oldVol == NULL) 
 	{
 		// Start in center of volume
 		double localPos[4]={dim[0]/2, dim[1]/2, dim[2]/2, 1}; 
 		LocalToWorld(_vol->getTransformMatrix(), localPos, _vPos);
+		
 	}
-	// Find the local pos based on world pos
-	DTIVoxel lPos = DTIVoxel(3);
-	WorldToLocal(_vol->getTransformMatrix(), _vPos, dim, lPos);
 
 	_img->Modified();
-
-	// set the extent to which the image should be mapped
-	_aSag->SetDisplayExtent(lPos[0],lPos[0], 0, dim[1]-1, 0, dim[2]-1);
-	_aAxial->SetDisplayExtent(0,dim[0]-1, 0,dim[1]-1, lPos[2],lPos[2]);
-	_aCor->SetDisplayExtent(0,dim[0]-1, lPos[1],lPos[1], 0,dim[2]-1);
 
 	if (dim[3] == 1) // more common case
 	{
@@ -246,46 +348,55 @@ void WITVolumeViz::SetVolume(DTIScalarVolume *vol, float left, float right)
 			}
 		}
 	}
-	_aAxial->Modified();
-	_aCor->Modified();
-	_aSag->Modified();
 
-	// set the position in the _aPosition text actor
-	_aPosition->GetTextProperty()->SetFontSize(16);
-	_aPosition->GetTextProperty()->SetFontFamilyToArial();
-	_aPosition->GetTextProperty()->SetJustificationToLeft();
-	_aPosition->GetPositionCoordinate()->SetValue(2,0);
-	//_aPosition->GetTextProperty()->BoldOn();
-	//_aPosition->GetTextProperty()->ItalicOn();
-	_aPosition->GetTextProperty()->SetColor(0,0,0);
-	_aPosition->Modified();
 	SetPosition(_vPos);
 
 	// check to see if this is the very first image that has been loaded. 
 	// if so set the camera to a default position and orientation
 	if(_nActiveImage == -1)
 	{
-		vtkCamera *camera = _renderer->GetActiveCamera();
-	    vtkMatrix4x4 *mx = _aCor->GetUserMatrix();
-		unsigned int dim[3];
-		vol->getDimension(dim[0], dim[1], dim[2]);
-		const double imageCenter[4] = {dim[0]/2.0, dim[1]/2.0, dim[2] / 2.0, 1};
-		const double camP[4] = {dim[0]/2.0, 4*dim[1], dim[2] / 2.0, 1};
-		double transformedCenter[4];
-		double transformedCamP[4];
-
-		mx->MultiplyPoint(imageCenter, transformedCenter);
-		mx->MultiplyPoint(camP, transformedCamP);
-
-	  	camera->SetViewUp (0, 0, 1);
-		camera->SetPosition (transformedCamP[0], transformedCamP[1],  transformedCamP[2]);
-		camera->SetFocalPoint (transformedCenter[0],transformedCenter[1],transformedCenter[2]);
-		camera->ComputeViewPlaneNormal();
-		camera->Modified();
-
-		DTISceneActorID n=DTI_ACTOR_CORONAL_TOMO;
+		DTISceneActorID n = DTI_ACTOR_CORONAL_TOMO;
 		SetActiveImage(n);
+
+		for(std::map<vtkRenderWindow*, ActorSet*>::iterator it = this->windowToActorSet.begin(); 
+			it != this->windowToActorSet.end(); it++)
+		{
+			vtkRenderWindow *win = it->first;
+
+			vtkRendererCollection *rends = win->GetRenderers();
+
+			rends->InitTraversal();
+			while(vtkRenderer *rend = rends->GetNextItem())
+			{
+				this->SetCameraToDefault(rend);
+			}
+		}
 	}
+}
+
+void WITVolumeViz::SetCameraToDefault(vtkRenderer *rend)
+{
+	if(this->windowToActorSet.find(rend->GetRenderWindow()) == this->windowToActorSet.end())
+		return;
+
+	ActorSet *as = this->windowToActorSet.find(rend->GetRenderWindow())->second;
+	vtkCamera *camera = rend->GetActiveCamera();
+	vtkMatrix4x4 *mx = as->cor->GetUserMatrix();
+	unsigned int dim[3];
+	_vol->getDimension(dim[0], dim[1], dim[2]);
+	const double imageCenter[4] = {dim[0]/2.0, dim[1]/2.0, dim[2] / 2.0, 1};
+	const double camP[4] = {dim[0]/2.0, 4*dim[1], dim[2] / 2.0, 1};
+	double transformedCenter[4];
+	double transformedCamP[4];
+
+	mx->MultiplyPoint(imageCenter, transformedCenter);
+	mx->MultiplyPoint(camP, transformedCamP);
+
+	camera->SetViewUp (0, 0, 1);
+	camera->SetPosition (transformedCamP[0], transformedCamP[1],  transformedCamP[2]);
+	camera->SetFocalPoint (transformedCenter[0],transformedCenter[1],transformedCenter[2]);
+	camera->ComputeViewPlaneNormal();
+	camera->Modified();
 }
 
 ///Display border around the selected image plane
@@ -302,7 +413,7 @@ void WITVolumeViz::DisplayBorder()
 		WorldToLocal(_vol->getTransformMatrix(), _vPos, dim, lPos);
 		double p[3]={lPos[0], lPos[1], lPos[2]}, m[3] = {dim[0]-1, dim[1]-1, dim[2]-1};
 
-		_aBorder->SetUserMatrix (_aCor->GetUserMatrix());
+
 		vtkPoints *pts = _pdBorder->GetPoints();
 
 		// specify the 4 corners of the border depending on which image plane has been selected
@@ -328,11 +439,27 @@ void WITVolumeViz::DisplayBorder()
 			break;
 		}
 		_pdBorder->Modified();
-		_aBorder->SetVisibility(true);
-		_aBorder->Modified();
+	
+		for(std::map<vtkRenderWindow*, ActorSet*>::iterator it = this->windowToActorSet.begin(); 
+			it != this->windowToActorSet.end(); it++)
+		{
+			ActorSet *as = it->second;
+			as->border->SetUserMatrix(as->cor->GetUserMatrix());
+			as->border->SetVisibility(true);
+			as->border->Modified();
+		}
 	} 
 	else 
-		_aBorder->SetVisibility(false);
+	{
+		for(std::map<vtkRenderWindow*, ActorSet*>::iterator it = this->windowToActorSet.begin(); 
+			it != this->windowToActorSet.end(); it++)
+		{
+			ActorSet *as = it->second;
+			as->border->SetUserMatrix(as->cor->GetUserMatrix());
+			as->border->SetVisibility(false);
+			as->border->Modified();
+		}
+	}
 }
 
 void WITVolumeViz::SetPosition(Vector3d &v)
@@ -344,29 +471,52 @@ void WITVolumeViz::SetPosition(Vector3d &v)
 	DTIVoxel lPos = DTIVoxel(3);
 	WorldToLocal(_vol->getTransformMatrix(), v, dim, lPos);
 
+	sagExtent[0] = lPos[0];		sagExtent[1] = lPos[0];			sagExtent[2] = 0; 
+	sagExtent[3] = dim[1]-1;	sagExtent[4] = 0;				sagExtent[5] = dim[2] - 1;
+
+	axialExtent[0] = 0;			axialExtent[1] = dim[0] - 1;	axialExtent[2] = 0;
+	axialExtent[3] = dim[1]-1;	axialExtent[4] = lPos[2];		axialExtent[5] = lPos[2];
+
+	corExtent[0] = 0;			corExtent[1] = dim[0]-1;		corExtent[2] = lPos[1];
+	corExtent[3] = lPos[1];		corExtent[4] = 0;				corExtent[5] = dim[2] - 1;
+
 	// do a lazy update on the image planes that are mapped to the image actors
 	if(v[0] != _vPos[0]) 
 	{
 		_vPos[0] = v[0];
-		// Update Sagittal position
-		_aSag->SetDisplayExtent(lPos[0],lPos[0], 0,dim[1]-1, 0,dim[2]-1);
-		_aSag->Modified();
+		for(std::map<vtkRenderWindow*, ActorSet*>::iterator it = this->windowToActorSet.begin(); 
+			it != this->windowToActorSet.end(); it++)
+		{
+			ActorSet *as = it->second;
+			as->sag->SetDisplayExtent(sagExtent);
+			as->sag->Modified();
+		}
 	}
 
 	if(v[1] != _vPos[1]) 
 	{
 		_vPos[1] = v[1];
 		// Update Coronal position
-		_aCor->SetDisplayExtent(0,dim[0]-1, lPos[1],lPos[1], 0,dim[2]-1);
-		_aCor->Modified();
+		for(std::map<vtkRenderWindow*, ActorSet*>::iterator it = this->windowToActorSet.begin(); 
+			it != this->windowToActorSet.end(); it++)
+		{
+			ActorSet *as = it->second;
+			as->cor->SetDisplayExtent(corExtent);
+			as->cor->Modified();
+		}
 	}
 
 	if(v[2] != _vPos[2]) 
 	{
 		_vPos[2] = v[2];
-		// Update Axial position
-		_aAxial->SetDisplayExtent(0,dim[0]-1, 0,dim[1]-1, lPos[2],lPos[2]);
-		_aAxial->Modified();
+		// Update Coronal position
+		for(std::map<vtkRenderWindow*, ActorSet*>::iterator it = this->windowToActorSet.begin(); 
+			it != this->windowToActorSet.end(); it++)
+		{
+			ActorSet *as = it->second;
+			as->axial->SetDisplayExtent(axialExtent);
+			as->axial->Modified();
+		}
 	}
 
 	double flPos[3] = {lPos[0], lPos[1], lPos[2]};
@@ -378,7 +528,14 @@ void WITVolumeViz::SetPosition(Vector3d &v)
 	
 	// update the text of the position actor to show the new position in ACPC space
 	char spos[100]; sprintf(spos, "Position: %.1f, %.1f, %.1f",_vPos[0],_vPos[1],_vPos[2]);
-	_aPosition->SetInput(spos);
+
+	for(std::map<vtkRenderWindow*, ActorSet*>::iterator it = this->windowToActorSet.begin(); 
+		it != this->windowToActorSet.end(); it++)
+	{
+		ActorSet *as = it->second;
+		as->text->SetInput(spos);
+	}
+
 	//for(unsigned i = 0; i < _overlays.size(); i++)
 	//	_overlays[i]->SetPosition(v, lPos);
 }
@@ -411,11 +568,6 @@ void WITVolumeViz::MoveActiveImage(int amount)
 		Vector3d vPos;
 		LocalToWorld(_vol->getTransformMatrix(), lPos, vPos.v);
 		SetPosition(vPos);
-		
-		//Make image visible if hidden
-		if(!Visibility(i))
-			SetVisibility(i,true);
-		_renderer->GetRenderWindow()->Render();
 	}
 }
 void WITVolumeViz::SetActiveImage(DTISceneActorID &nType)
@@ -425,16 +577,31 @@ void WITVolumeViz::SetActiveImage(DTISceneActorID &nType)
 	switch(_nActiveImage) 
 	{
 	case DTI_ACTOR_SAGITTAL_TOMO:
-		_aSag->SetVisibility(true);
-		_aSag->Modified();
+		for(std::map<vtkRenderWindow*, ActorSet*>::iterator it = this->windowToActorSet.begin(); 
+			it != this->windowToActorSet.end(); it++)
+		{
+			ActorSet *as = it->second;
+			as->sag->SetVisibility(true);
+			as->sag->Modified();
+		}
 		break;
 	case DTI_ACTOR_AXIAL_TOMO:
-		_aAxial->SetVisibility(true);
-		_aAxial->Modified();
+		for(std::map<vtkRenderWindow*, ActorSet*>::iterator it = this->windowToActorSet.begin(); 
+			it != this->windowToActorSet.end(); it++)
+		{
+			ActorSet *as = it->second;
+			as->axial->SetVisibility(true);
+			as->axial->Modified();
+		}
 		break;
 	case DTI_ACTOR_CORONAL_TOMO:
-		_aCor->SetVisibility(true);
-		_aCor->Modified();
+		for(std::map<vtkRenderWindow*, ActorSet*>::iterator it = this->windowToActorSet.begin(); 
+			it != this->windowToActorSet.end(); it++)
+		{
+			ActorSet *as = it->second;
+			as->cor->SetVisibility(true);
+			as->cor->Modified();
+		}
 		break;
 	};
 	// show the overlays if they were previously hidden
@@ -463,8 +630,8 @@ void WITVolumeViz::GetPlaneEquation (DTISceneActorID id, double pt[4], double no
 
 	untransformedPoint[id] = _vPos[0];
 	untransformedNormal[id] = 1.0;
-
-	vtkMatrix4x4 *mx = _aCor->GetUserMatrix();
+	vtkMatrix4x4 *mx = vtkMatrix4x4::New();
+	mx->DeepCopy (_vol->getTransformMatrix());
 	mx->MultiplyPoint (untransformedPoint, pt);
 
 	vtkMatrix4x4 *invertedMx = vtkMatrix4x4::New();
@@ -474,6 +641,7 @@ void WITVolumeViz::GetPlaneEquation (DTISceneActorID id, double pt[4], double no
 	mx->MultiplyPoint (untransformedNormal, normal);
 	transposedMx->Delete();
 	invertedMx->Delete();
+	mx->Delete();
 }
 
 void WITVolumeViz::ActiveImageExtents(double transPts[4][3], double transNormal[4])
@@ -548,33 +716,46 @@ void WITVolumeViz::GetDisplayExtent (DTISceneActorID id, int displayExtent[6])
 	switch (id) 
 	{
 	case DTI_ACTOR_SAGITTAL_TOMO:
-		_aSag->GetDisplayExtent(displayExtent);
+		memcpy(displayExtent, sagExtent ,sizeof(int)*6);
 		break;
 	case DTI_ACTOR_CORONAL_TOMO:
-		_aCor->GetDisplayExtent(displayExtent);
+		memcpy(displayExtent, corExtent ,sizeof(int)*6);
 		break;
 	case DTI_ACTOR_AXIAL_TOMO:
-		_aAxial->GetDisplayExtent(displayExtent);
+		memcpy(displayExtent, axialExtent ,sizeof(int)*6);
 		break;
 	default:
 		break;
 	};
 }
 
-bool WITVolumeViz::Visibility (DTISceneActorID id)
+WITVolumeViz::ActorSet *WITVolumeViz::getActorSet(vtkRenderer *rend)
+{
+	vtkRenderWindow *win = rend->GetRenderWindow();
+	
+	return win ? this->windowToActorSet[win] : 0;
+}
+
+bool WITVolumeViz::GetVisibility(vtkRenderer *rend, DTISceneActorID id)
 {
 	// get the visibility of the selected image plane
 	bool bVis=false;
+
+	ActorSet *as = this->getActorSet(rend);
+
+	if(!as)
+		return false;
+
 	switch (id) 
 	{
 	case DTI_ACTOR_SAGITTAL_TOMO:
-		bVis = _aSag->GetVisibility()?true:false;
+		bVis = as->sag->GetVisibility()?true:false;
 		break;
 	case DTI_ACTOR_CORONAL_TOMO:
-		bVis = _aCor->GetVisibility()?true:false;
+		bVis = as->cor->GetVisibility()?true:false;
 		break;
 	case DTI_ACTOR_AXIAL_TOMO:
-		bVis = _aAxial->GetVisibility()?true:false;
+		bVis = as->axial->GetVisibility()?true:false;
 		break;
 	default:
 		break;
@@ -582,42 +763,63 @@ bool WITVolumeViz::Visibility (DTISceneActorID id)
 	return bVis;
 }
 
-void WITVolumeViz::SetVisibility (DTISceneActorID id, bool bVis)
+void WITVolumeViz::SetVisibility(vtkRenderer *rend, DTISceneActorID id, bool bVis)
 {
 	// set the visibility of the specified image plane
+	ActorSet *as = this->getActorSet(rend);
+	if(!as)
+		return;
+
+	vtkProp *actor = 0;
+
 	switch (id) 
 	{
 	case DTI_ACTOR_SAGITTAL_TOMO:
-		_aSag->SetVisibility(bVis);
-		_aSag->Modified();
+		actor = as->sag;
 		break;
 	case DTI_ACTOR_AXIAL_TOMO:
-		_aAxial->SetVisibility(bVis);
-		_aAxial->Modified();
+		actor = as->axial;
 		break;
 	case DTI_ACTOR_CORONAL_TOMO:
-		_aCor->SetVisibility(bVis);
-		_aCor->Modified();
+		actor = as->cor;
 		break;
 	default:
 		break;
 	};
+
+	if(!actor) return;
+
+	if(bVis && !rend->HasViewProp(actor))
+		rend->AddActor(actor);
+	else if(!bVis && rend->HasViewProp(actor))
+		rend->RemoveActor(actor);
+
 	// update the visibility of the overlay too
 //	for(unsigned i = 0; i < _overlays.size(); i++)
 //		_overlays[i]->SetVisible(id,bVis);
 	if((int)id == _nActiveImage)
-		_aBorder->SetVisibility(bVis);
+	{
+		if(bVis && !rend->HasViewProp(as->border))
+			rend->AddActor(as->border);
+		else if(!bVis && rend->HasViewProp(as->border))
+			rend->RemoveActor(as->border);
+	}
 }
 
 vtkMatrix4x4* WITVolumeViz::GetUserMatrix()
 {
-	assert(_aCor!=NULL); 
-	return _aCor->GetUserMatrix();
+	vtkMatrix4x4 *mx = vtkMatrix4x4::New();
+	mx->DeepCopy(_vol->getTransformMatrix());
+	return mx;
 }
 
 bool WITVolumeViz::OnRightButtonUp(int x, int y)
 {
 	// show the overlay panel if we clicked on one of the image planes...
+
+	/*
+
+	TODO: Port from Quench
 
 	_propPicker->PickProp(x, y, _renderer, _propCollection);
 	vtkProp *prop = _propPicker->GetViewProp();
@@ -629,8 +831,6 @@ bool WITVolumeViz::OnRightButtonUp(int x, int y)
     vtkAssemblyPath* path = _propPicker->GetPath();
 
     bool validPick = false;
-
- 
 
 	if (path)
 
@@ -665,6 +865,7 @@ bool WITVolumeViz::OnRightButtonUp(int x, int y)
 		//NotifyAllListeners( PEvent (new Event(SHOW_OVERLAY_PANEL)) );
 		return true;
 	}
+	*/
 	return false;
 }
 

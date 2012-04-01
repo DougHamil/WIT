@@ -14,102 +14,22 @@
 #include <vtkRenderer.h>
 #include <iostream>
 
-WITFrame::WITFrame(QWidget *parent,const QGLWidget *shared)
-	: QVTKWidget2(parent, shared)
+WITFrame::WITFrame()
 {
-	//this->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
-	this->setSizePolicy(QSizePolicy::Policy::Maximum,QSizePolicy::Policy::Maximum);
-	this->setLayout(new QBoxLayout(QBoxLayout::LeftToRight));
-	this->setContextMenuPolicy(Qt::ContextMenuPolicy::NoContextMenu);
-	this->renderer = 0;
-	this->SetUseTDx(false);	
+	this->renderer = vtkRenderer::New();
 	this->createContextMenu();
-	this->pathwayActor = 0;
-
-	this->GetRenderWindow()->SetAAFrames(false);
-	this->GetRenderWindow()->SetLineSmoothing(false);
-	this->GetRenderWindow()->SetPolygonSmoothing(false);
-	
-}
-
-WITFrame *WITFrame::CreateDuplicate(WITFrame &base)
-{
-	WITFrame *nF = new WITFrame();
-
-
-	return nF;
+	this->renderer->SetBackground(0.74, 0.74, 0.66);
+	this->setCamera(vtkCamera::New());
 }
 
 vtkCamera *WITFrame::getCamera()
 {
-	return this->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
+	return this->renderer->GetActiveCamera();
 }
 void WITFrame::setCamera(vtkCamera *newCam)
 {
-	this->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->SetActiveCamera(newCam);
-}
-
-void WITFrame::MakeCurrent()
-{
-	QVTKWidget2::MakeCurrent();
-}
-
-void WITFrame::initializeGL()
-{
-	QTime t;
-	t.start();
-	QVTKWidget2::initializeGL();
-	qDebug("GL Init time: %d ms",t.elapsed());
-}
-
-void WITFrame::paintGL()
-{
-	QTime t;
-	t.start();
-	QVTKWidget2::paintGL();
-	qDebug("GL Paint time: %d ms",t.elapsed());
-}
-
-void WITFrame::resizeGL(int w, int h)
-{
-	QTime t;
-	t.start();
-	QVTKWidget2::resizeGL(w,h);
-	//qDebug("GL Resize time: %d ms", t.elapsed());
-}
-
-vtkRenderWindow *WITFrame::getRenderWindow()
-{
-	return (vtkRenderWindow*)this->GetRenderWindow();
-}
-
-
-void WITFrame::Frame()
-{
-	qDebug("%p Start to Frame time: %d ms",this, timer.elapsed());
-	QTime t;
-	t.start();
-	QVTKWidget2::Frame();
-	qDebug("%p Frame time: %d ms", this, t.elapsed());
-}
-void WITFrame::Start()
-{
-	QTime t;
-	t.start();
-	QVTKWidget2::Start();
-	qDebug("%p Start time: %d ms", this, t.elapsed());
-	timer.restart();
-}
-void WITFrame::End()
-{
-	QTime t;
-	t.start();
-	QVTKWidget2::End();
-	qDebug("%p End time: %d ms", this, t.elapsed());
-}
-void WITFrame::setRenderer(vtkRenderer *renderer)
-{
-	this->renderer = renderer;
+	this->renderer->SetActiveCamera(newCam);
+	newCam->Delete();
 }
 
 void WITFrame::addActor(vtkActor* actor)
@@ -134,27 +54,9 @@ void WITFrame::removeActor(vtkActor* actor)
 		this->renderer->RemoveActor(actor);
 }
 
-void WITFrame::mousePressEvent(QMouseEvent *event)
-{
-	//qDebug("----------------------------------\n%p -- Mouse Press\n-----------------------------------",this);
-
-	if(event->button() == Qt::MouseButton::MidButton)
-	{
-		emit this->onToggleDuplicate();
-	}
-	else 
-		QVTKWidget2::mousePressEvent(event);
-}
-
-void WITFrame::resizeEvent(QResizeEvent *e)
-{
-	//this->vtkWidget->resize(this->width(),this->height());
-	QVTKWidget2::resizeEvent(e);
-}
-
 void WITFrame::createContextMenu()
 {
-	mnu_Context = new QMenu(this);
+	mnu_Context = new QMenu();
 	QMenu *contextMenu = mnu_Context;
     QActionGroup *viewGroup = new QActionGroup(contextMenu);
 	
@@ -215,8 +117,7 @@ void WITFrame::setCameraView(int view)
 	emit this->onSetCameraView((CameraView)view);
 }
 
-void WITFrame::contextMenuEvent(QContextMenuEvent *ev)
+void WITFrame::showContextMenu(QContextMenuEvent *ev)
 {
-	qDebug("CONTEXT MENU EVENT!");
     mnu_Context->exec(ev->globalPos());
 }

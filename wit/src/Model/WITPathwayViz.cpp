@@ -61,15 +61,11 @@ WITPathwayViz::WITPathwayViz()
 	vtkCellArray *intCells = vtkCellArray::New();
 	_pdIntersections->SetPoints(intPoints);
 	_pdIntersections->SetVerts (intCells);
-	//_aIntersections->GetProperty()->SetPointSize (5);
 	intPoints->Delete();
 	intCells->Delete();
 
 	_propPicker = vtkPropPicker::New();
 	_propCollection = vtkPropCollection::New();
-
-	//_propCollection->AddItem(_aPathways);
-	//_propCollection->AddItem(_aIntersections);
 
 	_pathwayVisibility = false;
 	_pointsVisibility = false;
@@ -172,7 +168,6 @@ void WITPathwayViz::GeneratePathways(PDBHelper& helper, PathwayGroupArray &group
 	_pdPathways->SetLines(cells);
 	_pdPathways->GetPointData()->SetScalars(colors);
 
-
     // release memory
 	points->Delete();
 	pcoords->Delete();
@@ -239,6 +234,7 @@ void WITPathwayViz::UpdatePathwaysColor(PDBHelper& helper, PathwayGroupArray &gr
 			point_idx += pathway->getNumPoints();
 		}
 	}
+	
 	colors->Modified();
 
 	//Update the visibility if either group visibility has changed
@@ -293,6 +289,7 @@ void WITPathwayViz::UpdatePathwaysVisibility(PDBHelper& helper, PathwayGroupArra
 	
 	_pdPathways-> SetLines(cells);
 	_pdPathways-> Modified();
+	
 	 cells	   -> Delete();
 		    
 	// update the cache
@@ -328,32 +325,29 @@ void WITPathwayViz::SetActiveImageExtents(double pts[4][3], double normal[4])
 }
 vtkActor *WITPathwayViz::getPathwayActor()
 {
-	//return this->_aPathways;
-	// Create the mapper 
+	// Create mapper and actor
 	vtkPolyDataMapper *mapper = vtkPolyDataMapper::New();
 	mapper->SetInput(_pdPathways);
+	mapper->SetResolveCoincidentTopologyToOff();
+	mapper->SetStatic(true);
 	vtkActor *act = vtkActor::New();
-	//act->GetProperty()->SetLineWidth(1.0);
 	act->SetMapper(mapper);
 	return act;
 }
 vtkActor *WITPathwayViz::getIntersectionActor(){
-	return 0;
+	vtkPolyDataMapper *mapper = vtkPolyDataMapper::New();
+	mapper->SetInput(_pdIntersections);
+	mapper->SetResolveCoincidentTopologyToOff();
+	mapper->SetStatic(true);
+	vtkActor *act = vtkActor::New();
+	act->SetMapper(mapper);
+	return act;
 }
 void WITPathwayViz::SetIntersectionGeometry(PDBHelper& helper, PathwayGroupArray &groupArray)
 {
-	/*
-	TODO: Port this to use OPCODE
-
-	// Create a RAPID model of the image slice currently selected.
-	// The model is simply a quad
-	RAPID_model *planeModel = new RAPID_model;
-	planeModel->BeginModel();
-		planeModel->AddTri (_planePts[0], _planePts[1], _planePts[2], 0);
-		planeModel->AddTri (_planePts[0], _planePts[2], _planePts[3], 1);
-	planeModel->EndModel();
-
-	// color array to store the color of the pathway intersections
+	
+	//TODO: Port this to use OPCODE
+		// color array to store the color of the pathway intersections
 	vtkPoints *newPts = vtkPoints::New();
 	vtkCellArray *newCells = vtkCellArray::New();
 	vtkUnsignedCharArray* colors = vtkUnsignedCharArray::New();
@@ -361,11 +355,19 @@ void WITPathwayViz::SetIntersectionGeometry(PDBHelper& helper, PathwayGroupArray
 	colors->SetNumberOfComponents(3);
 	unsigned char rgb[3];
 
-	int stat_idx = helper.PDB()->getStatisticIndex(_per_point_info.StatisticName());
-	ColorMap &c = this->ColorMapPanel_()->ColorMaps()[ _per_point_info.ColorMapIndex() ];
-	float stat_min = _per_point_info.Min();
-	float stat_max = _per_point_info.Max();
-	float scale = (c.Colors.size()-1)/(stat_max-stat_min);
+	//int stat_idx = helper.PDB()->getStatisticIndex(_per_point_info.StatisticName());
+	//ColorMap &c = this->ColorMapPanel_()->ColorMaps()[ _per_point_info.ColorMapIndex() ];
+	//float stat_min = _per_point_info.Min();
+	//float stat_max = _per_point_info.Max();
+	//float scale = (c.Colors.size()-1)/(stat_max-stat_min);
+#ifdef USE_RAPID
+	// Create a RAPID model of the image slice currently selected.
+	// The model is simply a quad
+	RAPID_model *planeModel = new RAPID_model;
+	planeModel->BeginModel();
+		planeModel->AddTri (_planePts[0], _planePts[1], _planePts[2], 0);
+		planeModel->AddTri (_planePts[0], _planePts[2], _planePts[3], 1);
+	planeModel->EndModel();
 
 	// Now intersect the RAPID model with each pathway in the scene, and record any intersection points.
 	for (int i = 0; i < helper.PDB()->getNumFibers(); i++) 
@@ -376,7 +378,7 @@ void WITPathwayViz::SetIntersectionGeometry(PDBHelper& helper, PathwayGroupArray
 			continue;
 
 		RAPID_Collide (ZERO_ROTATION, ZERO_TRANSLATION, planeModel,
-			ZERO_ROTATION, ZERO_TRANSLATION, pathway->getRAPIDModel(), RAPID_ALL_CONTACTS);
+			ZERO_ROTATION, ZERO_TRANSLATION, pathway->getCollisionModel(), RAPID_ALL_CONTACTS);
 
 		for(int contact=0; contact<RAPID_num_contacts; contact++)
 		{
@@ -402,6 +404,52 @@ void WITPathwayViz::SetIntersectionGeometry(PDBHelper& helper, PathwayGroupArray
 			colors->InsertNextTuple3(rgb[0],rgb[1],rgb[2]);
 		}
 	}
+	delete planeModel;
+#else
+	// 4 Vertices for the plane
+	IceMaths::Point *verts = new IceMaths::Point[4];
+	float planePts[4][3];
+	// 2 triangles
+	IceMaths::IndexedTriangle *optris = new IceMaths::IndexedTriangle[2];
+	for(int i = 0; i < 4; i++) 
+	{
+		for(int n = 0; n < 3; n++)
+			planePts[i][n] = _planePts[i][n];
+
+		verts[i] = IceMaths::Point(planePts[i]);
+	}
+	// Build triangles
+	optris[0] = IceMaths::IndexedTriangle(0,1,2);
+	optris[1] = IceMaths::IndexedTriangle(0,2,3);
+
+	// Build the model
+	Opcode::OPCODECREATE OPCC;
+	OPCC.mIMesh = new Opcode::MeshInterface();
+	OPCC.mNoLeaf = false;
+	OPCC.mIMesh->SetNbTriangles(2);
+	OPCC.mIMesh->SetNbVertices(4);
+	OPCC.mIMesh->SetPointers(optris, verts);
+	PCollModel model(new CollModel);
+	model->Build(OPCC);
+	
+	for (int i = 0; i < helper.PDB()->getNumFibers(); i++) 
+	{
+		DTIPathway *pathway = helper.PDB()->getPathway(i);
+		bool selected = helper.Assignment()[i] == helper.Assignment().SelectedGroup();
+		if (!groupArray[ helper.Assignment()[i] ].Visible())
+			continue;
+		Opcode::Model *pathwayModel = pathway->getCollisionModel();
+		Opcode::AABBTreeCollider TC;
+		TC.SetFirstContact(false);
+		Opcode::BVTCache cache;
+		cache.Model0 = pathway->getCollisionModel();
+		cache.Model1 = model.get();
+
+		TC.Collide(cache);
+	}
+
+	
+#endif
 
 	// update data and release memory
 	_pdIntersections->SetPoints (newPts);
@@ -412,12 +460,8 @@ void WITPathwayViz::SetIntersectionGeometry(PDBHelper& helper, PathwayGroupArray
 	_pdIntersections->Modified();
 	colors->Delete();
 	//	_vis_panel->Update(groupArray, helper.Assignment());
-	NotifyAllListeners (PEvent (new Event(UPDATE_VISIBILITY_PANEL)));
+	//NotifyAllListeners (PEvent (new Event(UPDATE_VISIBILITY_PANEL)));
 
-	_renderer->GetRenderWindow()->Render();
-	delete planeModel;
-
-	*/
 }
 void WITPathwayViz::IncreaseLineWidth(int amount)
 {

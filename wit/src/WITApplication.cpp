@@ -9,12 +9,13 @@ void WITApplication::initialize(int argc, char *argv[])
 
 	// Construct the model
 	this->undoSystem = new UndoSystem(this);
+
+	// Construct the view
+
+	// Construct the controllers
 	this->pathwayController = new PathwayController(this);
 	this->subjectDataController = new SubjectDataController(this);
-
-	this->mainWinController = new WITMainWindowController();
-	this->mainWinController->showWindow();
-
+	this->mainWinController = new WITMainWindowController(new WITMainWindow());
 
 	for(int i = 0; i < argc;i++)
 	{
@@ -34,7 +35,10 @@ void WITApplication::initialize(int argc, char *argv[])
 			this->subjectDataController->loadVolume(std::string(argv[++i]));
 		}
 	}
-	
+
+	// Show the window
+	this->mainWinController->showWindow();
+
 }
 
 int WITApplication::exec()

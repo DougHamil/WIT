@@ -12,6 +12,7 @@
 #include "../View/WITVolumeViz.h"
 #include "vtkInteractorStyleWIT.h"
 #include <util/SubjectData.h>
+#include <vtkActor.h>
 
 class WITFrameController : QObject
 {
@@ -24,16 +25,12 @@ public slots:
 	void onVolumeLoaded(VolumeInfo &info);
 	void onSetCameraView(CameraView view);
 	void onRender();
-	void onToggleDuplicate();
-	void onMoveActiveVolumeSlice(int dist);
+signals:
+	void moveVolumeSlice(DTISceneActorID slice, int pos);
 private:
 	void prepareFrame(WITFrame *fr, bool isDup);
-	vtkInteractorStyleWIT *istyle;
-	vtkInteractorStyleWIT *dupIStyle;
 	WITFrame *frame;
-	WITFrame *dupFrame;
-	WITVolumeViz *volumeViz;
-	WITVolumeViz *dupVolumeViz;
+
 };
 
 #endif
